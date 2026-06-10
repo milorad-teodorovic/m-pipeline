@@ -1,0 +1,9 @@
+# pipeline runtime state — created per-repo when the pipeline runs, never published
+.m/
+
+# editor / OS / python noise
+.DS_Store
+*.bak
+*.swp
+__pycache__/
+*.pyc

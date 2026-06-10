@@ -1,0 +1,296 @@
+---
+description: Multi-pass sequential code review with unified, evidence-backed findings, optional Codex second-opinion gate, and per-project compliance pass. Use for small-to-medium diffs (1-3 files) or when a single deep sweep is preferable to parallel fan-out.
+argument-hint: [target]
+model: opus
+effort: xhigh
+allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(gh:*), Bash(codex:*), Agent
+---
+# /m:review - Multi-Pass Review Workflow
+
+Review code changes using Claude multi-pass analysis, producing a single evidence-backed report with hallucination verification.
+
+For Go backend targets, this command delegates the security pass to the `go-security-reviewer` subagent (read-only, flow-simulation based). For a breadth-first parallel-lens review, use `/m:review:fanout`.
+
+## Input
+
+Target to review: `$ARGUMENTS`
+
+If no explicit target is given, review the most recent plan or local code changes in context.
+
+## Jira Context (run before Step 0)
+
+Resolve a Jira issue for this review when possible. Follow the shared rules in `${CLAUDE_PLUGIN_ROOT}/references/jira-context.md`.
+
+Resolution order:
+
+1. **Explicit Jira URL in `$ARGUMENTS`** — full `*.atlassian.net/browse/KEY`. Highest priority.
+2. **PR URL in `$ARGUMENTS`** — derive the Jira key from the PR's head branch:
+   ```bash
+   gh pr view "$PR_URL" --json headRefName,body -q .headRefName
+   ```
+   Load `.m/jira.yml` if present and apply its `branchPattern` regex (default `([A-Z][A-Z0-9]+-\d+)`) to the branch name. If no match in the branch, also scan the PR body for a Jira URL.
+3. **Local changes without a PR** — check the current branch name (`git rev-parse --abbrev-ref HEAD`) against `branchPattern`.
+4. **Bare `KEY` in `$ARGUMENTS`** — only if `.m/jira.yml.projectKey` matches the prefix.
+
+Once a key is resolved:
+
+- Fetch the issue with `mcp__atlassian__*` tools: summary, description, status, acceptance criteria, recent comments.
+- If the `atlassian` MCP is not installed or not authenticated, note that in the review output (do not fail) and suggest `/mcp` / `claude mcp add --transport http --scope user atlassian https://mcp.atlassian.com/v1/mcp`.
+- Add a **Jira Context** block (key, title, link, status, 2–4 line summary, acceptance criteria) at the very top of the review output — above **Review Metadata**.
+- During the Deep Review pass, check whether the change actually satisfies the Jira acceptance criteria. Any gap is a finding (severity = medium unless it blocks release).
+- If no Jira key can be resolved, proceed without Jira context — **do not fail the review**.
+
+## Context Sources
+
+- `.m/jira.yml` (per-project Jira mapping)
+- `.m/INDEX.md`
+- `.m/GAPS.md`
+- `PROJECT_INDEX.md`
+- repo-local guidance such as `AGENTS.md` and `CLAUDE.md`
+- the actual changed files and directly impacted adjacent code
+
+## Execution
+
+### Phase Marker Protocol
+
+This skill participates in the `/m:develop` phase gate. Follow this
+protocol on every invocation, including standalone runs:
+
+1. On entry, before any review work: run
+   `mkdir -p .m && touch .m/phase-review-started` via Bash.
+2. On successful completion (review report emitted): run
+   `touch .m/phase-review-done`.
+3. On hard-block or mid-run abort: leave `-started` in place and do NOT
+   write `-done`.
+
+If `.m/DEVELOP_ACTIVE` is present and its `current_phase:` line does not
+read `review`, stop and tell the user — the pipeline is out of sync.
+
+### Step 0: Determine Footprint
+
+Before any review work, measure the change size:
+
+```bash
+git diff --shortstat          # unstaged
+git diff --shortstat --cached # staged
+git diff --name-only          # file list
+```
+
+**Empty change set.** If all of the above show no changes (no diff, nothing staged, and the target resolves to zero changed files), there is nothing to review. Report "no change set to review" plainly, return an `N/A` verdict, and stop — do not fabricate findings or invent `file:line` references for nonexistent code, and do not return `APPROVED` or `BLOCKED`.
+
+Classify into a tier:
+
+| Tier | Criteria | Passes |
+|------|----------|--------|
+| **Trivial** | 1 file, ≤5 lines, pure rename / comment / formatting / string-literal change with no logic, control-flow, or security surface | 1 (focused deep review of the changed lines only) |
+| **Small** | 1-3 files, <100 lines changed | 1 (deep review only) |
+| **Medium** | 4-10 files, 100-500 lines changed | 2 (scope mapping + deep review) |
+| **Large** | 10+ files or 500+ lines changed | 3 (scope mapping + deep review + regression re-check) |
+| **+Compliance** | Any size, repo's `.m/pipeline.yml` sets `compliance.enabled: true` | +1 compliance pass |
+
+If the target is a PR URL or commit range, use `git diff --shortstat <base>...<head>` instead.
+
+**Trivial fast-path.** When the change is Trivial, still run the Phase Marker Protocol and the Step 3 verification pass — the hallucination filter is never skipped — but limit the review to the changed lines and their direct callers, skip the blast-radius mapping, regression, and compliance passes, and return `APPROVED` directly when no real issue is found. Do not spend a multi-pass budget on a one-line rename. The fast-path does not apply if the single changed line touches auth, money, a query string, crypto, a `.sql` migration, or a file matching the repo's `.m/pipeline.yml` `high_stakes_paths` — those escalate to the normal tier regardless of size.
+
+### Step 1: Review Passes (scaled by tier)
+
+Run the applicable passes per the footprint tier:
+
+**Pass 1 — Scope and impact mapping** *(Medium + Large only)*
+Identify what changed and what it touches. Map the blast radius.
+
+**Pass 2 — Deep review** *(all tiers)*
+Security, correctness, code quality, and tests. This is the core pass.
+
+**Pass 3 — Regression re-check** *(Large only)*
+Re-examine every flagged area for false positives and missed context.
+
+**Pass 4 — Compliance** *(repos whose `.m/pipeline.yml` sets `compliance.enabled: true`)*
+
+**Detection:** Load `.m/pipeline.yml` (schema: `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`). Run this pass when `compliance.enabled: true`; skip it otherwise.
+
+When enabled, **always** run the compliance pass — not only when data/PII/storage is touched. Apply, in order:
+- The frameworks declared in `compliance.frameworks` (e.g. SOC2, GDPR, EU AI Act).
+- Every entry in `compliance.rules` as a concrete checklist item traced against the diff.
+- Any specs under `.business/` (BUSINESS.md, contracts, regulatory docs), which are the source of truth for domain compliance when present.
+
+Where a rule names a path or field convention (restricted files, `*Enc` envelope-encryption fields, migration immutability), flag any change that violates it. Label all findings from this pass with `[COMPLIANCE]`.
+
+### Step 2: Target Classification
+
+Before finalizing findings, classify the target:
+
+- normal source repo
+- extracted source-map or decompiled snapshot
+- vendor-heavy tree
+- generated or bundled output
+
+Scope style and maintainability judgments to first-party code unless the reviewed target explicitly includes vendor or generated artifacts.
+
+## What To Check
+
+Review against these categories:
+
+- security threats
+- bugs and behavioral regressions
+- missing or weak tests
+- code quality and clean-code issues
+- repo-specific invariants from `AGENTS.md`, `CLAUDE.md`, or `.m/INDEX.md`
+- repo-health risks such as missing manifests, absent tests, or incomplete source trees
+- architectural liabilities such as oversized controller files, module-global mutable state, singleton runtime objects, sync filesystem calls in interactive paths, and excessive environment-flag branching
+- prompt-pack or command-pack consistency when reviewing workflow tooling: documented commands must exist and command cross-references must be valid
+- **[Compliance]** When the repo's `.m/pipeline.yml` enables compliance, check the declared `compliance.frameworks` and `compliance.rules` against the diff. See Pass 4 for the full pass.
+
+## Step 3: Verification — Deduplicate and Validate
+
+After all passes complete, perform a **final verification pass** over ALL findings.
+
+For **every** finding:
+
+1. **Read the actual code** at the reported `file:line` — confirm the file and line exist
+2. **Verify the quoted snippet** matches the real file content
+3. **Trace the data flow** — follow the claimed issue through the code path
+4. **Check for existing mitigations** — middleware, validation, framework defaults that may already handle the issue
+5. **Counter-argument** — what is the strongest reason this is NOT a problem? If the counter-argument holds, discard the finding
+6. **If the finding cannot be verified from actual code, discard it** — this is the hallucination filter
+
+Then:
+
+- **Merge duplicates**: combine findings about the same issue
+- **Rank** by severity (critical > high > medium > low)
+
+Findings without concrete file:line evidence and verified code proof are NOT findings. Discard them.
+
+## Step 4: Second-Opinion Gate (optional, opt-in)
+
+If `--second-opinion` appears in `$ARGUMENTS`, OR if the change matches a high-stakes category (production migration, auth/money/tenant-isolation, public API contract, or a file matching the repo's `.m/pipeline.yml` `high_stakes_paths`), follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 9 for the full gate flow — explicit user prompt, native `codex review` invocation forms, side-by-side presentation, the "stricter verdict wins" disagreement rule, and the missing-CLI fallback.
+
+Record the second-opinion invocation in the Review Metadata (`Second-opinion: codex review --{mode}`).
+
+### Step 5: PR Posting Gate
+
+When `/m:review` is invoked directly by the user (not as a phase of `/m:develop`) against a GitHub PR the user did not author, publish the review to the PR. In every other invocation mode the review remains chat-only.
+
+**Detection.** Walk up from the current working directory looking for `.m/DEVELOP_ACTIVE`. If that file exists with a `current_phase:` line, the review is pipeline-invoked — **skip this step entirely**. Otherwise, the review is direct-invocation. Continue.
+
+The remaining checks all apply only when the resolved target is a GitHub PR URL (or a PR number resolvable via `gh pr view`). For non-PR targets (local diff, commit SHA, file path), skip this step.
+
+**Suppression gates (in order; any positive match skips the post).**
+
+```bash
+# Required preconditions
+PR_URL="$RESOLVED_PR_URL"                              # already resolved from $ARGUMENTS
+gh auth status >/dev/null 2>&1 || { echo "[gate] gh not authenticated — skip post"; SKIP=1; }
+
+# Gate (b): author check
+PR_AUTHOR=$(gh pr view "$PR_URL" --json author -q .author.login 2>/dev/null) || { echo "[gate] gh pr view failed — skip post"; SKIP=1; }
+ME=$(gh api user -q .login 2>/dev/null) || { echo "[gate] gh api user failed — skip post"; SKIP=1; }
+[ -n "$PR_AUTHOR" ] && [ "$PR_AUTHOR" = "$ME" ] && { echo "[gate] you are PR author — skip post"; SKIP=1; }
+
+# Gate (c) + (d): state and draft
+PR_META=$(gh pr view "$PR_URL" --json state,isDraft -q '[.state, (.isDraft|tostring)] | @tsv' 2>/dev/null) || { echo "[gate] gh pr view failed — skip post"; SKIP=1; }
+IFS=$'\t' read -r PR_STATE PR_DRAFT <<< "$PR_META"
+[ "$PR_STATE" != "OPEN" ] && { echo "[gate] PR state $PR_STATE — skip post"; SKIP=1; }
+[ "$PR_DRAFT" = "true" ] && { echo "[gate] PR is draft — skip post"; SKIP=1; }
+
+# Gate (e): idempotence
+gh pr view "$PR_URL" --json comments,reviews -q '[.comments[].body, .reviews[].body] | .[]' 2>/dev/null | grep -q '<!-- m:review:posted -->' && { echo "[gate] prior /m:review post detected — skip post"; SKIP=1; }
+```
+
+If any gate set `SKIP=1`, do not post; print the gate reason in chat and continue to the chat Output block as today.
+
+**Body template.** When posting, the body MUST begin with the HTML signature, followed by the same review content printed in chat:
+
+```
+<!-- m:review:posted -->
+### /m:review report
+
+{Review Metadata block}
+
+{Findings block}
+
+{Discarded Findings block}
+
+{Pre-Existing Gaps block}
+
+**Verdict:** {BLOCKED | APPROVED WITH WARNINGS | APPROVED}
+
+<sub>Posted by /m:review.</sub>
+```
+
+**Posting branch.**
+
+- If verdict is `APPROVED` AND findings count (after Step 3 verification) is zero:
+  ```bash
+  gh pr review "$PR_URL" --approve --body "$BODY"
+  ```
+- Otherwise (any other verdict, OR `APPROVED` with non-zero findings):
+  ```bash
+  gh pr comment "$PR_URL" --body "$BODY"
+  ```
+
+**Failure handling.** Any non-zero exit from `gh pr review --approve` (HTTP 422 own-PR, 403 branch-protection, 404, network) falls back to `gh pr comment` with the same body, and the fallback is noted in chat. Any non-zero exit from `gh pr comment` is logged in chat and the chat review is still printed in full. Posting failures NEVER block the chat output and NEVER change the verdict.
+
+**Idempotence note.** The `<!-- m:review:posted -->` signature is the sole idempotence guard. A repeated invocation against the same PR after a successful post will detect the prior signature and skip — by design. To force a new post (e.g., the code has changed materially), edit out the prior signature in GitHub's UI, or delete the prior comment, then re-run.
+
+## Persistence
+
+Separate:
+
+- CURRENT findings: introduced or relevant to the reviewed target
+- PRE-EXISTING gaps: adjacent issues not caused by the reviewed target
+
+Only append PRE-EXISTING gaps to `.m/GAPS.md`.
+
+## Output
+
+Return the review in chat only.
+
+Use this format:
+
+### Review Metadata
+
+- **Footprint tier**: Small / Medium / Large
+- **Passes run**: N
+- **Compliance pass**: yes / no / n/a
+- **Findings verified**: N of M survived verification
+- **Second opinion**: none / codex review --{mode} (if Step 4 was run)
+
+### Findings
+
+List findings ordered by severity. For each finding include:
+
+- **Title**
+- **Severity**: critical / high / medium / low
+- **Confidence**: high / medium / low
+- **Location**: `file_path:line_number`
+- **Evidence**: code snippet or diff excerpt proving the issue (verified against real code)
+- **Why it matters**: impact description
+- **Suggested fix** *(optional)*: only if the fix is obvious and non-trivial
+
+### Discarded Findings
+
+Brief list of findings that failed verification, with reason (hallucinated file/line, code doesn't match, mitigated by existing code, etc.). This section provides transparency on what was filtered.
+
+### Pre-Existing Gaps
+
+Summarize anything logged to `.m/GAPS.md`.
+
+### Verdict
+
+Return one of:
+
+- `BLOCKED` — critical issues that must be fixed
+- `APPROVED WITH WARNINGS` — non-critical issues worth addressing
+- `APPROVED` — clean review
+- `N/A` — no change set to review (empty diff, nothing staged, or no resolved target)
+
+## Rules
+
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire review. No shortcuts: never skip a pass that the footprint tier or compliance scope requires, never emit a finding without `file:line` evidence and a verbatim Read snippet, never let the more permissive verdict win when Codex disagrees with Claude. Use tools fully: Read every cited file in the verification pass, Grep for related call sites before clearing a finding, fetch Jira via the `atlassian` MCP. Do not compress reasoning to save tokens — the self-challenge gate exists because cheap-feeling reviews are where assumption errors hide.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` before any user-facing question (the Codex second-opinion prompt, Jira fallbacks). Resolve `[FACTUAL]` residues via Read/Grep/Glob/Bash/MCP; only `[USER-INTENT]` questions reach the user, each prefixed `[USER-INTENT]`.
+- Prefer zero findings over weak findings
+- Every finding MUST include file:line proof and a verified code snippet — no exceptions
+- Every finding goes through the verification pass — no shortcuts
+- Do not create separate review files unless the user explicitly asks
+- If the repo is incomplete or extracted, note that as a review-confidence limiter instead of pretending verification was exhaustive

@@ -1,0 +1,123 @@
+---
+description: Post-implementation verification loop — run tests, fix issues, re-check until exit predicate is satisfied or the 3-loop safety cap is reached. Use after /m:implement or when verifying recent code changes.
+argument-hint: [scope-or-check]
+model: sonnet
+effort: high
+disable-model-invocation: false
+---
+# /m:iterate - Verification Workflow
+
+Run post-implementation verification, fix current issues, and repeat until the result is clean or blocked.
+
+## Input
+
+Context to verify: `$ARGUMENTS`
+
+If no explicit target is given, verify the most recent implementation in context.
+
+## Context Sources
+
+- `.m/INDEX.md` for project patterns and test commands
+- `.m/PROGRESS.md`
+- `.m/GAPS.md`
+- repo manifests and existing test scripts
+
+## Workflow
+
+### Phase Marker Protocol
+
+This skill participates in the `/m:develop` phase gate. Follow this
+protocol on every invocation, including standalone runs:
+
+1. On entry, before running any tests or checks: run
+   `mkdir -p .m && touch .m/phase-iterate-started` via Bash.
+2. On successful completion (exit predicate satisfied and `PASSED`
+   emitted): run `touch .m/phase-iterate-done`.
+3. On loop-count exit (`BLOCKED`) or mid-run abort: leave `-started` in
+   place and do NOT write `-done`.
+
+If `.m/DEVELOP_ACTIVE` is present and its `current_phase:` line does not
+read `iterate`, stop and tell the user — the pipeline is out of sync.
+
+1. Determine the affected surface
+2. Run the most relevant tests and checks first
+3. Audit error handling, security basics, and obvious quality issues
+4. Fix CURRENT issues when the fix is in scope
+5. Log PRE-EXISTING issues to `.m/GAPS.md`
+6. Re-run the checks — always re-run, never assume a fix worked
+7. Evaluate the **exit predicate** (below) after each loop
+8. Stop when the exit predicate is satisfied, or after 3 fix loops as a hard safety cap
+
+For large verification passes, you may use focused subagents if the runtime supports them cleanly. Do not depend on external team-orchestration primitives.
+
+## Exit Predicate
+
+The loop exits when **all** of these are true:
+
+1. **Tests green.** The relevant test suite runs and exits 0. If there are no tests, fall back to the best available verification (type-check, lint, build) and say so explicitly in the Loop Summary.
+2. **Zero critical review findings.** If `/m:review` or `/m:review-fanout` produced findings against this change, every `critical`-severity finding is either fixed or explicitly waived by the user. `high` severity findings should also be resolved unless the user accepts them in writing.
+3. **`.m/PROGRESS.md` updated.** The new state is written with: what was fixed, what was waived, and what (if anything) is still open.
+4. **PRD Success Criteria satisfied (if present).** If a `.m/PRD-*.md` exists for this change and contains a `## 8. Success Criteria` section, every listed condition must be verifiably true. Each condition is a target-state predicate (e.g. exit code, observable user flow, response code, latency bound), not an activity description. If a condition cannot be verified in the current environment, list it under Remaining Issues with the exact reason and exit `BLOCKED`.
+
+Token budget, loop count, and "it looks fine" are **not** valid exit conditions. If the predicate isn't satisfied and the 3-loop safety cap is reached, exit with `BLOCKED` and list exactly which predicate clause failed.
+
+The hard cap exists to prevent runaway burn, not as a substitute for the predicate. A PASSED verdict requires the predicate, not just the cap.
+
+## Context Accumulation
+
+Each fix loop carries forward what was learned in prior loops:
+
+- **Loop N** produces: failures found, fixes applied, new test output
+- **Loop N+1** receives all of the above as input context
+- Never re-investigate an issue that was already fixed and verified clean in a prior loop
+- If a fix in loop N introduces a new failure in loop N+1, link them: "Fix for X in loop 1 caused Y in loop 2"
+- After each loop, emit a brief progress line before continuing:
+  `Loop {n}/3: {fixed_count} fixed, {remaining_count} remaining, {new_count} new`
+
+This prevents circular debugging and makes the iteration log self-documenting.
+
+## Progressive Output
+
+Report progress at each milestone, not just at the end:
+
+1. After initial check run: `Checks complete: {pass_count} passed, {fail_count} failed`
+2. After each fix loop: `Loop {n}/3: {fixed_count} fixed, {remaining_count} remaining`
+3. After final verdict: full report below
+
+This lets the user see movement during long verification passes.
+
+## Output
+
+Finish with:
+
+## Iteration Report
+
+### Status
+### Checks Run
+### Loop Summary
+Brief log of what each loop found and fixed (1-2 lines per loop).
+### Issues Found and Fixed
+### Remaining Issues
+### Pre-Existing Gaps Logged
+### Exit Predicate Status
+- Tests green: yes / no — {command and exit code}
+- Zero critical review findings: yes / no / n/a — {count and severity}
+- PROGRESS.md updated: yes / no
+### Verdict
+
+Use `PASSED` or `BLOCKED` for the final verdict.
+
+- `PASSED` requires all three exit-predicate clauses = yes (or `n/a` for clause 2 when no review was run).
+- `BLOCKED` means at least one clause failed. Name which one(s) and why.
+
+## Rules
+
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire iterate run. No shortcuts: never declare `PASSED` on the loop-count cap, never claim "tests pass" without quoting the command and exit code, never assume a fix worked without re-running the check, never collapse a PRD success-criterion check because verifying it "feels expensive". Use tools fully: run the actual test/lint/build commands, Read every fixed region after the edit, Grep for related call sites the fix may have broken. Do not compress reasoning — every loop carries forward the full failure context, not a summary.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md`. Resolve every factual question via tools before pausing the loop to ask the user. Run the test, Read the failing region, Grep the symbol. Only `[USER-INTENT]` residues (acceptance-criterion ambiguity that no source resolves, scope decisions outside the PRD) interrupt iteration.
+- Re-run the relevant checks after every fix loop
+- Keep CURRENT issues separate from PRE-EXISTING gaps
+- If there are no tests, say that explicitly and fall back to the best available verification
+- If the repo is incomplete or missing build metadata, say exactly what could not be verified and why
+- Flag plan defects directly. If the plan itself looks wrong, say so and escalate — improvising past a bad plan costs more than the pause
+- When output drifts into self-correction or repeated apology, emit the next concrete action and resume. Apology spirals reinforce cautious hedging across the remaining loops, and the next action is the signal that ends them
+- After a loop finishes clean, emit a positive checkpoint (`Loop N clean — continuing to {next check}`) before the next loop so the session frame reflects progress, not only failures
