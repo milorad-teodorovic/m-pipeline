@@ -192,6 +192,10 @@ m-pipeline/
 └── README.md
 ```
 
+## License
+
+MIT, see [LICENSE](LICENSE).
+
 ---
 
 <div align="center">
