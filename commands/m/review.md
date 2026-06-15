@@ -1,5 +1,5 @@
 ---
-description: Multi-pass sequential code review with unified, evidence-backed findings, optional Codex second-opinion gate, and per-project compliance pass. Use for small-to-medium diffs (1-3 files) or when a single deep sweep is preferable to parallel fan-out.
+description: Multi-pass sequential code review with unified, evidence-backed findings, a mandatory Codex second engine (config-driven via .m/pipeline.yml codex:), and per-project compliance pass. Use for small-to-medium diffs (1-3 files) or when a single deep sweep is preferable to parallel fan-out.
 argument-hint: [target]
 model: opus
 effort: xhigh
@@ -161,11 +161,13 @@ Then:
 
 Findings without concrete file:line evidence and verified code proof are NOT findings. Discard them.
 
-## Step 4: Second-Opinion Gate (optional, opt-in)
+## Step 4: Codex Second Engine (mandatory when enabled)
 
-If `--second-opinion` appears in `$ARGUMENTS`, OR if the change matches a high-stakes category (production migration, auth/money/tenant-isolation, public API contract, or a file matching the repo's `.m/pipeline.yml` `high_stakes_paths`), follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 9 for the full gate flow — explicit user prompt, native `codex review` invocation forms, side-by-side presentation, the "stricter verdict wins" disagreement rule, and the missing-CLI fallback.
+When `codex.enabled` is true (opt-in — see `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`), Codex review runs on **every** review automatically; there is no `y/n` prompt and no high-stakes gating. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 12 for the full flow — config resolution (Section 1), the Metered Codex Invocation via native `codex exec review` (Section 6), Fast-Mode flags (Section 3), Token Metering (Section 7), side-by-side presentation under a **Second Opinion (Codex)** section, and the "stricter verdict wins" disagreement rule.
 
-Record the second-opinion invocation in the Review Metadata (`Second-opinion: codex review --{mode}`).
+Codex is skipped (noted in metadata, never a hard failure) only when `codex.enabled: false`, the CLI is unavailable, or the per-run token budget is reached. `--second-opinion` in `$ARGUMENTS` is now a no-op for enabling (it is already on); it remains accepted for backward compatibility.
+
+Record the invocation in the Review Metadata (`Second-opinion: codex exec review --{mode}` or `none — {reason}`).
 
 ### Step 5: PR Posting Gate
 
@@ -254,7 +256,8 @@ Use this format:
 - **Passes run**: N
 - **Compliance pass**: yes / no / n/a
 - **Findings verified**: N of M survived verification
-- **Second opinion**: none / codex review --{mode} (if Step 4 was run)
+- **Second opinion**: codex exec review --{mode} / none — {disabled | unavailable | budget reached}
+- **Codex tokens**: {run total from the meter} / {token_budget}
 
 ### Findings
 

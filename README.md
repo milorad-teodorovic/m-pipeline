@@ -140,7 +140,7 @@ Five specialist skills. Three **auto-activate** when matching files are edited; 
 
 **Phase enforcement.** `/m:develop` writes marker files (`.m/DEVELOP_ACTIVE`, `.m/phase-<name>-started`/`-done`). The `enforce-develop-phase.py` `PreToolUse` hook denies `Edit`/`Write`/`MultiEdit` outside `.m/` until the active phase has been entered through its skill. Writes inside `.m/` are always allowed. This is what makes the gates real rather than advisory.
 
-**Dual-engine.** `/m:plan` runs two blocking Codex passes (Pass-1 architecture sanity, Pass-2 final-plan verdict); review commands gate Codex behind explicit consent and show verdicts side-by-side. The stricter verdict always wins. Protocol: `references/codex-protocol.md`.
+**Dual-engine (opt-in).** When you enable it per repo via `.m/pipeline.yml` `codex.enabled: true` (off by default), Codex runs as a second engine across the pipeline: `/m:plan` gets two blocking passes (Pass-1 architecture sanity, Pass-2 final-plan verdict), `/m:research` runs a parallel Codex researcher reconciled with Claude's, and `/m:review` / `/m:review-fanout` run Codex on every review with verdicts side-by-side. The stricter verdict always wins. Each run is **token-metered** against a budget (`token_budget`, default 200k) with a graceful fallback to Claude-only when the budget is reached, and an optional **fast mode**. Defaults and toggles: `references/pipeline-context.md`; full protocol: `references/codex-protocol.md`.
 
 **Fan-out review.** `/m:review-fanout` spawns blind specialist subagents in parallel — each sees only its lens — then a judge pass reconciles and dedupes at `file:line`. Lens prompts: `references/lens-templates.md`.
 
@@ -166,7 +166,7 @@ Five specialist skills. Three **auto-activate** when matching files are edited; 
 
 The pipeline **degrades gracefully** when these are absent:
 
-- **Codex CLI** (`codex` ≥ 0.123.0 on `PATH`) — enables the dual-engine passes in `/m:plan` and the second-opinion gate in review. Without it, plans run single-engine and the gate is skipped.
+- **Codex CLI** (`codex` ≥ 0.123.0 on `PATH`) — enables the dual-engine passes across `/m:plan`, `/m:research`, and review when you opt in via `.m/pipeline.yml` `codex.enabled: true` (off by default). Token-metered per run with a budget + graceful fallback; optional fast mode (`codex.fast_mode`). Without it — or when left disabled — every stage runs Claude-only.
 - **`atlassian` MCP** — enables Jira enrichment when a request matches a Jira key and a per-project `.m/jira.yml` exists. Set up with:
   ```text
   claude mcp add --transport http --scope user atlassian https://mcp.atlassian.com/v1/mcp

@@ -3,7 +3,7 @@ description: Focused, isolated research using internet sources, official docs, a
 argument-hint: [topic-or-question]
 model: opus
 effort: xhigh
-allowed-tools: Read, Grep, Glob, WebSearch, WebFetch, Agent
+allowed-tools: Read, Grep, Glob, WebSearch, WebFetch, Agent, Bash
 ---
 # /m:research - Focused Research Workflow
 
@@ -52,17 +52,23 @@ The research agent reads these when relevant (within its isolated context):
 
 Use web research when the answer depends on external systems, changing facts, or official documentation.
 
+## Dual-Engine Research (Codex)
+
+When `codex.enabled` is true (opt-in — see `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`), research runs as a **parallel dual-engine** pass: Codex researches the same questions independently while Claude's research agent runs, then Claude reconciles both into one finding set. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 11 for the full protocol — config resolution (Section 1), the Operating-Rules Preamble (Section 4), Secret Redaction (Section 5), the Metered Codex Invocation (Section 6), Token Metering (Section 7), and the reconciliation rules (`[CORROBORATED]` where both agree; side-by-side `[claude]` vs `[codex]` where they disagree; merge unique findings preserving citations). When Codex is disabled, unavailable, or the token budget is reached, run Claude-only research exactly as before.
+
 ## Workflow
 
 1. Convert the request into 2-5 focused research questions
-2. Inspect local code and repo patterns first
-3. Use official docs and primary sources for external facts
-4. Separate:
+2. Resolve the `codex:` config and, when enabled, kick off the Codex research pass (protocol Section 11) in parallel with the steps below
+3. Inspect local code and repo patterns first
+4. Use official docs and primary sources for external facts
+5. Separate:
    - stable local observations
    - external facts
    - recommendations or opinions
-5. Compare options, tradeoffs, risks, and unknowns
-6. Return findings as text to the parent session
+6. Compare options, tradeoffs, risks, and unknowns
+7. Reconcile Claude and Codex findings per protocol Section 11 (when dual-engine ran)
+8. Return findings as text to the parent session, then run Handoff Cleanup (protocol Section 13)
 
 The research agent does NOT write to `.m/RESEARCH.md`. The parent session writes findings to `.m/RESEARCH.md` if and when the user confirms they should be persisted.
 

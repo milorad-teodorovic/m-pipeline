@@ -105,7 +105,7 @@ Read these when available (reading context does NOT replace running refine/plan)
 3. **PLAN** — Before invoking, verify `.m/phase-refine-done` exists. Update `.m/DEVELOP_ACTIVE` to `current_phase: plan`. Invoke `Skill(skill="m:plan")` immediately. Do not prompt the user between refine and plan. Do not emit any plan content inline. Plan may BLOCK and spawn worktree-isolated `/m:research` when it encounters unknowns.
 4. Classify the side-effect tier: `read-only`, `write-local`, or `write-external`.
 5. **IMPLEMENT** — Verify `.m/phase-plan-done` exists. Update `.m/DEVELOP_ACTIVE` to `current_phase: implement`. Invoke `Skill(skill="m:implement")`. All code mutation happens inside this skill.
-6. **REVIEW** — Verify `.m/phase-implement-done` exists. Update `.m/DEVELOP_ACTIVE` to `current_phase: review`. Invoke the appropriate review skill (see Review Selection below) via the Skill tool. Codex second-opinion gate applies to high-stakes categories.
+6. **REVIEW** — Verify `.m/phase-implement-done` exists. Update `.m/DEVELOP_ACTIVE` to `current_phase: review`. Invoke the appropriate review skill (see Review Selection below) via the Skill tool. The Codex second engine runs in-stage on every review when `codex.enabled` is true (default).
 7. **ITERATE** — Verify `.m/phase-review-done` exists. Update `.m/DEVELOP_ACTIVE` to `current_phase: iterate`. Invoke `Skill(skill="m:iterate")`. Run until the **exit predicate** is satisfied (tests green + zero critical review findings + `.m/PROGRESS.md` updated) or the 3-loop safety cap is reached. `PASSED` requires the predicate, not just the cap.
 8. **EXIT PIPELINE** — Delete `.m/DEVELOP_ACTIVE`. Update `.m/TASKS.md`, `.m/PROGRESS.md`, and `.m/GAPS.md` with the outcome. Then append one outcome signal to `~/.claude/m-learning/signals/outcomes.jsonl` (create the file if absent) so `/m:learn` can derive adaptations — a single JSON line of the form `{"timestamp":"<ISO-8601>","type":"outcome","skill":"develop","request":"<one-line summary>","stages":"<e.g. refine→plan→implement→review-fanout→iterate>","verdict":"<PASSED|BLOCKED>","loops":<n>,"codex":"<agree|disagree|n/a>"}` (use the `timestamp` key to match the existing signal schema). Append with the file tools, not `echo`. This is passive telemetry and is separate from the opt-in `/m:feedback` signals.
 
@@ -129,29 +129,24 @@ Pick the review command based on the change shape, not by default:
 
 Compliance and high-stakes triggers are read from the repo's `.m/pipeline.yml` (schema: `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`). If the file is absent, compliance is off and only the generic high-stakes categories in the next section apply.
 
-## Codex Second-Opinion Gate
+## Codex Second Engine (mandatory when enabled)
 
-After the review stage produces a verdict, trigger the Codex second-opinion gate when any of these are true:
+Codex participation across the pipeline (plan, research, review) is driven by the `codex:` section of the repo's `.m/pipeline.yml` (schema: `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`; defaults: `enabled: false` (opt-in), `fast_mode: false`, `gpt-5.5`/`xhigh`, `token_budget: 200000`, `on_budget_exceeded: fallback`).
 
-- Migration touching a production table
-- Auth / money / tenant-isolation code path
-- Public API contract change
-- Any changed file matching a `high_stakes_paths` glob in the repo's `.m/pipeline.yml`
-- `--second-opinion` appears anywhere in `$ARGUMENTS`
+When `codex.enabled` is true (opt-in), the review stage runs Codex automatically on **every** review — there is no `y/n` prompt and no high-stakes gating. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 12:
 
-Gate flow:
+1. After the review stage produces its verdict, run the Metered Codex Invocation via native `codex exec review` with the flag matching the target (`--uncommitted`, `--base <branch>`, or `--commit <SHA>`).
+2. Present Claude's findings and Codex's findings **side-by-side**. Do not merge silently.
+3. **Disagreement rule:** if Claude says `APPROVED` but Codex flags criticals that survive re-verification, downgrade to `BLOCKED`. The more permissive verdict never wins by default.
+4. Codex is skipped (noted in metadata, never a pipeline failure) only when `codex.enabled: false`, the CLI is unavailable, or the per-run token budget is reached (per `on_budget_exceeded`).
 
-1. Ask the user explicitly: *"Change touches {category}. Run Codex second-opinion review? (y/n)"* — never auto-run.
-2. On yes, invoke `codex review` with the flag matching the target (`--uncommitted`, `--base <branch>`, or `--commit <SHA>`).
-3. Present Claude's findings and Codex's findings **side-by-side**. Do not merge silently.
-4. **Disagreement rule:** if Claude says `APPROVED` but Codex flags criticals that survive re-verification, downgrade to `BLOCKED`. The more permissive verdict never wins by default.
-5. If `codex` is not on PATH, note it in the metadata and skip the gate — do not fail the pipeline.
+The high-stakes categories below still escalate Claude's own pass depth, size tier, and compliance pass; they no longer gate Codex.
 
 ## Size Selection
 
 - **Small** (1–3 files, unambiguous scope): `refine → plan → implement → review → iterate`. Use `/m:review`.
 - **Medium** (4–10 files OR multi-layer): `refine → plan → implement → review → iterate`. Use `/m:review-fanout` instead of `/m:review` if the change crosses 2+ layers.
-- **Large or security-sensitive** (10+ files, migrations, auth/money, `high_stakes_paths` matches, API contracts): `refine → plan (with worktree research as needed) → implement → review-fanout → codex second-opinion (gated) → iterate`.
+- **Large or security-sensitive** (10+ files, migrations, auth/money, `high_stakes_paths` matches, API contracts): `refine → plan (with worktree research as needed) → implement → review-fanout (Codex second engine runs in-stage when `codex.enabled`) → iterate`.
 
 Every size runs the full pipeline: refine → plan → implement → review → iterate. No stage is optional. No skips. No "trivial enough" bypass. You must invoke `/m:refine` and `/m:plan` as Skill tool calls — not inline them, not summarize them, not skip them. Refine auto-chains to plan in all sizes. Plan handles research internally via BLOCK + worktree spawn when it encounters unknowns.
 
@@ -169,7 +164,7 @@ Inherit the tier from `/m:implement`. The tier gates how the pipeline proceeds:
 - Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` at every stage. Before any user-facing question, resolve factual residues via Read, Grep, Glob, Bash, or MCP. Only `[USER-INTENT]` questions (scope, tradeoffs, business rules, preferences) reach the user. Every user-facing question is prefixed `[USER-INTENT]`.
 - Treat critical or high-risk review and verification issues as gates, not soft suggestions
 - `/m:iterate` may only emit `PASSED` when its three-clause exit predicate is green. A loop-count exit is `BLOCKED`, not `PASSED`
-- Codex second-opinion is opt-in via user prompt. Never run it automatically
+- Codex runs automatically on plan, research, and review when `codex.enabled` is true (opt-in); it is config-driven, not prompted. Enable per repo via `codex.enabled: true`
 - When Claude's judge and Codex disagree, the stricter verdict wins
 - Do not auto-create worktrees
 - Do not redesign UI unless the user explicitly asks

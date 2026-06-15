@@ -69,9 +69,9 @@ read `plan`, stop and tell the user — the pipeline is out of sync.
 
 #### Pre-flight: Codex Dual-Engine Check
 
-Before any observation work, run the Codex pre-flight check defined in `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 1. The pre-flight either sets `CODEX_DISABLED=true` (skip both passes silently) or initializes the 2-invocation round budget shared across Pass-1, Pass-2, and the final verification pass.
+Before any observation work, resolve the `codex:` config (Section 1) and run the pre-flight check defined in `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 2. When `codex.enabled` is true (opt-in), Codex Pass-1 and Pass-2 are **mandatory** — there is no per-pass permission prompt. The pre-flight sets `CODEX_DISABLED=true` only when Codex is disabled in `.m/pipeline.yml`, the CLI is unavailable, or the per-run token budget is reached; in those cases the passes are skipped and the plan proceeds Claude-only.
 
-The Codex Invocation Template (Section 2) and Secret Redaction Rule (Section 3) in that reference apply to every Pass-1 and Pass-2 handoff write. Do not duplicate those rules here — read the reference and apply them verbatim.
+The Metered Codex Invocation (Section 6), Fast-Mode flags (Section 3), Operating-Rules Preamble (Section 4), Secret Redaction Rule (Section 5), and Token Metering (Section 7) all apply to every Pass-1 and Pass-2 handoff. Do not duplicate those rules here — read the reference and apply them verbatim.
 
 #### Observation Gathering
 
@@ -89,7 +89,7 @@ Observations are input for the grill. They do NOT become plan elements without u
 
 #### Pass-1: Codex Architecture Sanity (blocking)
 
-Runs after observation gathering completes, before Phase 2 begins. Phase 2 must not start until Pass-1 completes or is skipped. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 4 for the full protocol — payload build, redaction, invocation, merge of `[OBSERVATION — codex]` entries.
+Runs after observation gathering completes, before Phase 2 begins. Phase 2 must not start until Pass-1 completes or is skipped. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 8 for the full protocol — payload build, redaction, metered invocation, merge of `[OBSERVATION — codex]` entries.
 
 ### Phase 2: Grill-Based Plan Construction
 
@@ -158,7 +158,7 @@ If all checks pass, run Pass-2 (below) before emitting the plan document.
 
 #### Pass-2: Codex Final Plan Review (blocking)
 
-Runs after the three exit-gate checks pass, before the plan document is emitted. The plan is not emitted until Pass-2 completes or is skipped. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 5 for the full Pass-2 protocol, Section 6 for the Disagreement Menu, Section 7 for the round budget rule, and Section 8 for the handoff cleanup that runs on every terminal path.
+Runs after the three exit-gate checks pass, before the plan document is emitted. The plan is not emitted until Pass-2 completes or is skipped. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 9 for the full Pass-2 protocol, Section 10 for the Disagreement Menu, Section 7 for token metering and budget enforcement, and Section 13 for the handoff cleanup that runs on every terminal path.
 
 ## Output
 
@@ -190,7 +190,7 @@ All other plan content (file changes, implementation steps, test strategy, error
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire plan run. No shortcuts: do not skip the grill loop, do not skip the Codex Pass-1/Pass-2 dual-engine checks when Codex is available, do not finalize a plan with any unconfirmed `[PROPOSED]` element. Use tools fully: Read every file cited in `[OBSERVATION]` entries, fetch Jira via the `atlassian` MCP rather than improvising acceptance criteria, prefer `context7` for library questions. Do not compress reasoning to save tokens — the grill is the value producer, not friction to optimize away.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire plan run. No shortcuts: do not skip the grill loop, do not skip the Codex Pass-1/Pass-2 dual-engine checks when `codex.enabled` is true (they are mandatory, not gated — see `codex-protocol.md`), do not finalize a plan with any unconfirmed `[PROPOSED]` element. Use tools fully: Read every file cited in `[OBSERVATION]` entries, fetch Jira via the `atlassian` MCP rather than improvising acceptance criteria, prefer `context7` for library questions. Do not compress reasoning to save tokens — the grill is the value producer, not friction to optimize away.
 - Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` to every question the plan emits to the user. Resolve factual questions via Read, Grep, Glob, Bash, or MCP before asking. Only `[USER-INTENT]` residues (scope tradeoffs, business rules, preferences between equally valid options) reach the user. Prefix every user-facing question with `[USER-INTENT]`.
 
 ## Self-Check

@@ -131,11 +131,11 @@ Judge responsibilities:
    - Tests say "happy path covered", contracts say "new error case added" → test gap
 5. **Rank** by merged severity.
 
-### Step 3: Second-Opinion Gate (Codex)
+### Step 3: Codex Second Engine (mandatory when enabled)
 
-If the change matches a high-stakes category (migration touching a production table, auth / money / tenant-isolation path, public API contract change, anything matching a `high_stakes_paths` glob in the repo's `.m/pipeline.yml`), OR if `--second-opinion` appears in `$ARGUMENTS`, follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 9 for the full gate flow — explicit user prompt, native `codex review` invocation forms, the version floor, the "stricter verdict wins" disagreement rule, and the missing-CLI fallback. **Do not run Codex automatically for categories that don't match** — the preference is dual-engine *with permission*.
+When `codex.enabled` is true (opt-in — see `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`), Codex review runs on **every** fanout review automatically; there is no `y/n` prompt and no high-stakes gating. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 12 for the full flow — config resolution (Section 1), the Metered Codex Invocation via native `codex exec review` (Section 6), Fast-Mode flags (Section 3), and Token Metering (Section 7). `--second-opinion` in `$ARGUMENTS` is a no-op for enabling (already on); accepted for backward compatibility. Codex is skipped (noted in metadata, never a hard failure) only when `codex.enabled: false`, the CLI is unavailable, or the per-run token budget is reached.
 
-**Fanout-specific handling.** Capture Codex's stdout and emit it under a dedicated **Second Opinion (Codex)** section alongside the judge verdict — do **not** merge it into the judge's findings list automatically. Apply Section 9's "stricter verdict wins" rule: if the judge says `APPROVED` but Codex flags criticals that survive the hallucination filter, downgrade the verdict to `BLOCKED` and surface the disagreement at the top of the output.
+**Fanout-specific handling.** Emit Codex's findings under a dedicated **Second Opinion (Codex)** section alongside the judge verdict — do **not** merge it into the judge's findings list automatically. Apply Section 12's "stricter verdict wins" rule: if the judge says `APPROVED` but Codex flags criticals that survive the hallucination filter, downgrade the verdict to `BLOCKED` and surface the disagreement at the top of the output.
 
 ### Step 4: PR Posting Gate
 
@@ -216,7 +216,8 @@ Return in chat only. Format:
 - **Findings per lens**: security:N, architecture:N, ...
 - **Merged findings**: N after dedup
 - **Re-verified critical+high**: N of M survived
-- **Second opinion**: none / codex review --{mode} — {agree | disagree with Claude judge}
+- **Second opinion**: codex exec review --{mode} — {agree | disagree with Claude judge} / none — {disabled | unavailable | budget reached}
+- **Codex tokens**: {run total from the meter} / {token_budget}
 
 ### Findings
 

@@ -14,8 +14,15 @@ compliance:
                                          # /m:review-fanout compliance lens fire automatically
   frameworks: [SOC2, GDPR, "EU AI Act"]  # informational; named in the compliance pass output
 high_stakes_paths:                       # repo-root-relative globs; a changed file matching
-  - "server/pkg/crypto/envelope/**"      # any glob triggers the Codex second-opinion gate and
-  - "**/erasure_service.go"              # the large / security-sensitive size tier
+  - "server/pkg/crypto/envelope/**"      # any glob escalates Claude's pass depth and the
+  - "**/erasure_service.go"              # large / security-sensitive size tier
+codex:                                   # dual-engine controls (see codex-protocol.md)
+  enabled: false                         # master switch; true = run Codex, false (default) = Claude-only
+  fast_mode: false                       # true = add fast-mode flags (~2.5x credit rate); off by default
+  model: gpt-5.5                         # model passed to Codex
+  reasoning_effort: xhigh                # model_reasoning_effort passed to Codex
+  token_budget: 200000                   # cumulative Codex tokens allowed per /m run before metering triggers
+  on_budget_exceeded: fallback           # "fallback" (finish Claude-only) | "stop" (halt and save progress)
 ```
 
 ## Load rules
@@ -32,6 +39,14 @@ high_stakes_paths:                       # repo-root-relative globs; a changed f
 4. `compliance.frameworks` is informational only. The compliance pass logic is the same
    regardless of which frameworks are listed; the list is surfaced in the report so the
    reviewer knows which obligations apply.
+5. The `codex:` section controls dual-engine participation (planning, research, review).
+   Loaded by `/m:plan`, `/m:research`, `/m:review`, `/m:review-fanout`, and `/m:develop`.
+   If the file or the `codex:` section is absent, every key defaults as documented in
+   `codex-protocol.md` Section 1 (`enabled: false`, `fast_mode: false`, `model: gpt-5.5`,
+   `reasoning_effort: xhigh`, `token_budget: 200000`, `on_budget_exceeded: fallback`) — i.e.
+   Codex is off by default and the pipeline runs Claude-only until you opt in via
+   `codex.enabled: true`. When enabled, the toggle drives fast mode through per-invocation
+   flags; the pipeline never edits the user's global `~/.codex/config.toml`.
 
 ## Relationship to other `.m/` files
 
