@@ -156,9 +156,36 @@ else
     CODEX_DISABLED=true
     rm -f .m/handoff/claude-to-codex.md
   else
-    # Meter: the cumulative session total for this invocation is the largest total_tokens
-    # in the JSONL stream (== payload.info.total_token_usage.total_tokens of the final event).
-    THIS=$(grep -oE '"total_tokens":[0-9]+' "$EV" | grep -oE '[0-9]+' | sort -rn | head -1)
+    # Meter: tokens spent this pass. codex-cli >=0.137 emits per-turn usage on
+    # each `turn.completed` event (input_tokens + output_tokens) and no longer
+    # carries a `total_tokens` field; older builds emitted a single
+    # `total_tokens` under payload.info.total_token_usage. Sum the turn.completed
+    # usage and fall back to the legacy field so both schemas are covered.
+    THIS=$(python3 - "$EV" <<'METERPY'
+import json, sys
+turn_total = 0
+legacy_max = 0
+try:
+    for line in open(sys.argv[1]):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            obj = json.loads(line)
+        except ValueError:
+            continue
+        if obj.get("type") == "turn.completed":
+            u = obj.get("usage") or {}
+            turn_total += (u.get("input_tokens") or 0) + (u.get("output_tokens") or 0)
+        info = ((obj.get("payload") or {}).get("info") or {})
+        tot = (info.get("total_token_usage") or {}).get("total_tokens")
+        if isinstance(tot, int):
+            legacy_max = max(legacy_max, tot)
+except OSError:
+    pass
+print(turn_total or legacy_max or 0)
+METERPY
+)
     [ -z "$THIS" ] && THIS=0
     TOTAL=$(( SPENT + THIS ))
     echo "$TOTAL" > "$METER"
