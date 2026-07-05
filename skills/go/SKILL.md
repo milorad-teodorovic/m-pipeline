@@ -1,5 +1,5 @@
 ---
-name: m-go
+name: go
 description: Senior-level Go development and review standards. Use when editing or reviewing .go files, go.mod, go.work, Go-based services, goroutines, channels, or Go test files.
 argument-hint: [task or file]
 model: sonnet
@@ -10,7 +10,7 @@ paths:
   - "**/go.mod"
   - "**/go.work"
 ---
-# /m-go - Go Standards Mode
+# /m:go - Go Standards Mode
 
 Role: senior Go engineering. Responsibilities: produce code that is clean, organized, idiomatic, and production-grade. No shortcuts, no "it works" justifications. Output reads like work shipped by an engineer who has run Go at scale.
 

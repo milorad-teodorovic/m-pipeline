@@ -10,10 +10,10 @@ Show a concise reference for the `/m:*` workflow.
 
 State these rules first:
 
-- In Claude Code, `/m:*` should live as slash commands under `.claude/commands/m/`. The pipeline commands remain colon-namespaced slash commands (`/m:refine`, `/m:plan`, …).
-- The expert modes live as skills under `.claude/skills/m-*/` and split into two invocation styles:
-  - **Manual security skills** — `/m-cr` and `/m-security` carry `disable-model-invocation: true`, so they are user-invoked slash skills (you type `/m-cr` / `/m-security`); Claude does not auto-run them.
-  - **Path-activated expert skills** — `m-go`, `m-react`, and `m-biz` carry `user-invocable: false` plus a `paths:` glob list, so they auto-load when Claude edits matching files (`**/*.go`, `go.mod`, `go.work`; `**/*.tsx`, `**/*.jsx`, tailwind config, `package.json`; `.business/**`, `**/BUSINESS.md`). They are hidden from the `/` menu and are not typed as slash commands.
+- The pipeline ships as the `m` plugin: commands live under the plugin's `commands/` directory and are invoked colon-namespaced (`/m:refine`, `/m:plan`, …).
+- The expert modes live as skills under the plugin's `skills/` directory and split into two invocation styles:
+  - **Manual security skills** — `/m:cr` and `/m:security` carry `disable-model-invocation: true`, so they are user-invoked slash skills (you type `/m:cr` / `/m:security`); Claude does not auto-run them.
+  - **Path-activated expert skills** — `m:go`, `m:react`, and `m:biz` carry `user-invocable: false` plus a `paths:` glob list, so they auto-load when Claude edits matching files (`**/*.go`, `go.mod`, `go.work`; `**/*.tsx`, `**/*.jsx`, tailwind config, `package.json`; `.business/**`, `**/BUSINESS.md`). They are hidden from the `/` menu and are not typed as slash commands.
 - Do not recommend converting the whole `/m:*` pack into Claude skills unless the user explicitly wants a separate reusable plugin artifact.
 
 Then print:
@@ -39,14 +39,14 @@ Then print:
 
 User-invoked (type the slash command):
 
-- `/m-cr` — manual security review of changed code, evidence-only, read-only
-- `/m-security` — manual OWASP/CWE audit and threat modeling
+- `/m:cr` — manual security review of changed code, evidence-only, read-only
+- `/m:security` — manual OWASP/CWE audit and threat modeling
 
 Auto-activated (load when Claude edits matching files; not slash commands):
 
-- `m-go` — `**/*.go`, `go.mod`, `go.work`
-- `m-react` — `**/*.tsx`, `**/*.jsx`, tailwind config, `package.json`
-- `m-biz` — `.business/**`, `**/BUSINESS.md`
+- `m:go` — `**/*.go`, `go.mod`, `go.work`
+- `m:react` — `**/*.tsx`, `**/*.jsx`, tailwind config, `package.json`
+- `m:biz` — `.business/**`, `**/BUSINESS.md`
 
 ### Security review routing
 
@@ -54,8 +54,8 @@ Four security surfaces exist; pick by scope:
 
 | Want | Use |
 |------|-----|
-| Security review of a specific diff / PR / commit (evidence-only, read-only) | `/m-cr` |
-| Broad standing-codebase audit, threat model, or OWASP/CWE sweep (not diff-scoped) | `/m-security` |
+| Security review of a specific diff / PR / commit (evidence-only, read-only) | `/m:cr` |
+| Broad standing-codebase audit, threat model, or OWASP/CWE sweep (not diff-scoped) | `/m:security` |
 | Go backend security inside a normal code review | `/m:review` (auto-delegates the security pass to the `go-security-reviewer` agent) |
 | Compliance (SOC2 / GDPR / EU AI Act) | `/m:review` or `/m:review-fanout` — the compliance pass fires automatically on repos whose `.m/pipeline.yml` sets `compliance.enabled` |
 

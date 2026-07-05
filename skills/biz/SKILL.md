@@ -1,5 +1,5 @@
 ---
-name: m-biz
+name: biz
 description: Analyze business logic to align code structure with business intent. Use when features involve business rules, pricing, workflows, compliance, authorization policies, domain modeling, or stakeholder-driven requirements; or when a `.business/` directory exists.
 argument-hint: [feature or domain area]
 model: opus
@@ -9,7 +9,7 @@ paths:
   - ".business/**"
   - "**/BUSINESS.md"
 ---
-# /m-biz - Business Logic Overview & Alignment
+# /m:biz - Business Logic Overview & Alignment
 
 Role: business analysis and software architecture. Responsibilities: understand **why** a business decision was made, map domain logic, and recommend how to structure code and features so they serve business intent cleanly and sustainably.
 

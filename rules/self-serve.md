@@ -72,7 +72,7 @@ The factual context (latency, SLO, file references) is resolved via Read before 
 
 ## Interaction with refine Phase 2
 
-The 3–5 clarifying-question floor in `m-pipeline/commands/m/refine.md` Phase 2 applies to `[USER-INTENT]` questions only. If the self-serve pass drains the candidate question list below 3, that is the correct outcome — emit fewer questions and a fuller `Technical Context` section. A weak refine that asks the user about facts the codebase already settled is worse than a refine with two strong intent questions and a complete context block.
+The 3–5 clarifying-question floor in `m-pipeline/commands/refine.md` Phase 2 applies to `[USER-INTENT]` questions only. If the self-serve pass drains the candidate question list below 3, that is the correct outcome — emit fewer questions and a fuller `Technical Context` section. A weak refine that asks the user about facts the codebase already settled is worse than a refine with two strong intent questions and a complete context block.
 
 ## Interaction with verification.md
 

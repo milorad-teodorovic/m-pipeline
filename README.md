@@ -42,7 +42,7 @@ This repository **is** a Claude Code plugin marketplace. In Claude Code:
 
 ```text
 /plugin marketplace add milorad-teodorovic/m-pipeline
-/plugin install m-pipeline@m-pipeline
+/plugin install m@m-pipeline
 /reload-plugins
 ```
 
@@ -77,7 +77,7 @@ Claude refines the request into a spec, plans it (cross-checked by Codex if avai
 ```text
 /m:index          # first run in a repo — build the .m/ memory
 /m:status         # where are we? what's left?
-/m-cr             # security-review the current diff, evidence-only
+/m:cr             # security-review the current diff, evidence-only
 /m:analyze the auth package's session handling
 ```
 
@@ -128,11 +128,11 @@ Five specialist skills. Three **auto-activate** when matching files are edited; 
 
 | Skill | Focus | Activation |
 |-------|-------|------------|
-| `m-go` | Senior Go engineering & review | Auto · `**/*.go`, `go.mod`, `go.work` |
-| `m-react` | Senior React + TailwindCSS | Auto · `**/*.tsx`, `**/*.jsx`, `tailwind.config.*` |
-| `m-biz` | Business-logic & domain mapping | Auto · `.business/**`, `**/BUSINESS.md` |
-| `/m-cr` | Security review of changed code — evidence-only, read-only | Manual |
-| `/m-security` | Standing-codebase OWASP/CWE audit + threat model | Manual |
+| `m:go` | Senior Go engineering & review | Auto · `**/*.go`, `go.mod`, `go.work` |
+| `m:react` | Senior React + TailwindCSS | Auto · `**/*.tsx`, `**/*.jsx`, `tailwind.config.*` |
+| `m:biz` | Business-logic & domain mapping | Auto · `.business/**`, `**/BUSINESS.md` |
+| `/m:cr` | Security review of changed code — evidence-only, read-only | Manual |
+| `/m:security` | Standing-codebase OWASP/CWE audit + threat model | Manual |
 
 ---
 
@@ -182,8 +182,8 @@ m-pipeline/
 ├── .claude-plugin/
 │   ├── plugin.json
 │   └── marketplace.json
-├── commands/m/        # 14 slash commands
-├── skills/            # 5 expert-mode skills (m-go, m-react, m-biz, m-cr, m-security)
+├── commands/          # 14 slash commands (plugin name `m` → invoked as /m:refine, /m:plan, …)
+├── skills/            # 5 expert-mode skills (/m:go, /m:react, /m:biz, /m:cr, /m:security)
 ├── references/        # codex-protocol · jira-context · lens-templates · pipeline-context · checklists
 ├── rules/             # rigor · self-serve · verification  (referenced via ${CLAUDE_PLUGIN_ROOT})
 ├── hooks/

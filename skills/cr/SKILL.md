@@ -1,5 +1,5 @@
 ---
-name: m-cr
+name: cr
 description: Security review of changed code — evidence-only, read-only. Use for manual security verification of PRs, commits, or local changes.
 allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh api:*)
 model: opus

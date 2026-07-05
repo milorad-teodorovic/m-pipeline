@@ -1,5 +1,5 @@
 ---
-name: m-react
+name: react
 description: Senior-level React and TailwindCSS development standards. Use when editing or reviewing .tsx, .jsx, React components, hooks, tailwind.config, or frontend state and styling.
 argument-hint: [task or file]
 model: sonnet
@@ -11,7 +11,7 @@ paths:
   - "**/tailwind.config.*"
   - "**/package.json"
 ---
-# /m-react - React & TailwindCSS Standards Mode
+# /m:react - React & TailwindCSS Standards Mode
 
 Role: senior frontend engineering for React and TailwindCSS. Responsibilities: produce code that is clean, organized, accessible, and production-grade. Components must read as work shipped by a senior engineer who cares about maintainability.
 
