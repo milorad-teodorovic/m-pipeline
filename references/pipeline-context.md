@@ -19,8 +19,8 @@ high_stakes_paths:                       # repo-root-relative globs; a changed f
 codex:                                   # dual-engine controls (see codex-protocol.md)
   enabled: false                         # master switch; true = run Codex, false (default) = Claude-only
   fast_mode: false                       # true = add fast-mode flags (~2.5x credit rate); off by default
-  model: gpt-5.5                         # model passed to Codex
-  reasoning_effort: xhigh                # model_reasoning_effort passed to Codex
+  model: gpt-5.6-sol                     # model passed to Codex
+  reasoning_effort: high                 # model_reasoning_effort passed to Codex
   token_budget: 200000                   # cumulative Codex tokens allowed per /m run before metering triggers
   on_budget_exceeded: fallback           # "fallback" (finish Claude-only) | "stop" (halt and save progress)
 ```
@@ -42,8 +42,8 @@ codex:                                   # dual-engine controls (see codex-proto
 5. The `codex:` section controls dual-engine participation (planning, research, review).
    Loaded by `/m:plan`, `/m:research`, `/m:review`, `/m:review-fanout`, and `/m:develop`.
    If the file or the `codex:` section is absent, every key defaults as documented in
-   `codex-protocol.md` Section 1 (`enabled: false`, `fast_mode: false`, `model: gpt-5.5`,
-   `reasoning_effort: xhigh`, `token_budget: 200000`, `on_budget_exceeded: fallback`) — i.e.
+   `codex-protocol.md` Section 1 (`enabled: false`, `fast_mode: false`, `model: gpt-5.6-sol`,
+   `reasoning_effort: high`, `token_budget: 200000`, `on_budget_exceeded: fallback`) — i.e.
    Codex is off by default and the pipeline runs Claude-only until you opt in via
    `codex.enabled: true`. When enabled, the toggle drives fast mode through per-invocation
    flags; the pipeline never edits the user's global `~/.codex/config.toml`.

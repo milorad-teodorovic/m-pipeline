@@ -131,7 +131,7 @@ Compliance and high-stakes triggers are read from the repo's `.m/pipeline.yml` (
 
 ## Codex Second Engine (mandatory when enabled)
 
-Codex participation across the pipeline (plan, research, review) is driven by the `codex:` section of the repo's `.m/pipeline.yml` (schema: `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`; defaults: `enabled: false` (opt-in), `fast_mode: false`, `gpt-5.5`/`xhigh`, `token_budget: 200000`, `on_budget_exceeded: fallback`).
+Codex participation across the pipeline (plan, research, review) is driven by the `codex:` section of the repo's `.m/pipeline.yml` (schema: `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`; defaults: `enabled: false` (opt-in), `fast_mode: false`, `gpt-5.6-sol`/`high`, `token_budget: 200000`, `on_budget_exceeded: fallback`).
 
 When `codex.enabled` is true (opt-in), the review stage runs Codex automatically on **every** review — there is no `y/n` prompt and no high-stakes gating. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 12:
 
