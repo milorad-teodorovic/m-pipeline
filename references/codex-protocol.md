@@ -28,8 +28,8 @@ All Codex behavior is controlled by the `codex:` section of the per-project `.m/
 codex:
   enabled: false              # master switch. true = run Codex; false (default) = Claude-only.
   fast_mode: false            # true = add fast-mode flags (Section 3, ~2.5x credit rate); off by default.
-  model: gpt-5.5              # model passed to Codex.
-  reasoning_effort: xhigh     # model_reasoning_effort passed to Codex.
+  model: gpt-5.6-sol          # model passed to Codex.
+  reasoning_effort: high      # model_reasoning_effort passed to Codex.
   token_budget: 200000        # cumulative Codex tokens allowed per /m run before metering triggers.
   on_budget_exceeded: fallback   # "fallback" (finish Claude-only) | "stop" (halt and save progress).
 ```
@@ -40,8 +40,8 @@ codex:
 |---|---|
 | `enabled` | `false` |
 | `fast_mode` | `false` |
-| `model` | `gpt-5.5` |
-| `reasoning_effort` | `xhigh` |
+| `model` | `gpt-5.6-sol` |
+| `reasoning_effort` | `high` |
 | `token_budget` | `200000` |
 | `on_budget_exceeded` | `fallback` |
 
@@ -53,8 +53,8 @@ Bind the resolved values to named shell variables used by the rest of this proto
 # Resolve config (parse .m/pipeline.yml codex: section; fall back to defaults when keys are absent).
 CODEX_ENABLED=false           # from codex.enabled, default false (opt-in)
 CODEX_FAST=false              # from codex.fast_mode, default false (opt-in)
-CODEX_MODEL=gpt-5.5           # from codex.model, default gpt-5.5
-CODEX_EFFORT=xhigh            # from codex.reasoning_effort, default xhigh
+CODEX_MODEL=gpt-5.6-sol       # from codex.model, default gpt-5.6-sol
+CODEX_EFFORT=high             # from codex.reasoning_effort, default high (xhigh for high-stakes repos)
 CODEX_BUDGET=200000           # from codex.token_budget, default 200000
 CODEX_ON_EXCEED=fallback      # from codex.on_budget_exceeded, default fallback
 ```
@@ -84,7 +84,7 @@ else
 fi
 ```
 
-Fast mode on `gpt-5.5` increases speed ~1.5x and consumes credits at ~2.5x the standard rate. It requires a ChatGPT-authenticated Codex login (API-key auth falls back to standard pricing). It applies to every metered invocation below.
+Fast mode increases speed (~1.5x measured on `gpt-5.5`) and consumes credits at ~2.5x the standard rate. It requires a ChatGPT-authenticated Codex login (API-key auth falls back to standard pricing). It applies to every metered invocation below.
 
 ## 4. Operating-Rules Preamble (parity)
 
