@@ -1,7 +1,7 @@
 ---
 description: Show project status from .m/ — current focus, gaps, tasks, worktrees. Subcommands update task tracking. Use for "where are we", "what's left", "log a bug", "track progress".
 argument-hint: [gaps|task ...|done ...|progress ...|bug ...|debt ...|worktrees|cleanup]
-model: sonnet
+model: claude-sonnet-5
 effort: medium
 allowed-tools: Read, Grep, Glob, Edit, Write, Bash(git:*)
 ---
@@ -99,7 +99,7 @@ Never remove worktrees automatically.
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md`. No shortcuts: do not skip the active gap scan because the dashboard "looks fresh"; do not assume worktree state from the directory name — run `git worktree list`. Use file-system tools, not Bash, when updating `.m/TASKS.md`/`PROGRESS.md`/`GAPS.md`. Do not compress reasoning or signal content.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). Use file-system tools, not Bash, when updating `.m/` tracking files.
 - Preserve existing task and gap history
 - Prefer updating existing entries over duplicating them
 - If repo state is inconsistent, call it out instead of guessing

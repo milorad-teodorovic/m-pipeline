@@ -1,15 +1,15 @@
 ---
-description: Multi-pass sequential code review with unified, evidence-backed findings, a mandatory Codex second engine (config-driven via .m/pipeline.yml codex:), and per-project compliance pass. Use for small-to-medium diffs (1-3 files) or when a single deep sweep is preferable to parallel fan-out.
+description: Multi-pass sequential code review with unified, evidence-backed findings, a mandatory second engine (Codex or Kimi, config-driven via .m/pipeline.yml second_engine:), and per-project compliance pass. Use for small-to-medium diffs (1-3 files) or when a single deep sweep is preferable to parallel fan-out.
 argument-hint: [target]
-model: opus
+model: claude-opus-5
 effort: xhigh
-allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(gh:*), Bash(codex:*), Agent
+allowed-tools: Read, Grep, Glob, Write, Bash(git:*), Bash(gh:*), Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(mkdir:*), Bash(python3:*), Bash(rm:*), Agent
 ---
 # /m:review - Multi-Pass Review Workflow
 
 Review code changes using Claude multi-pass analysis, producing a single evidence-backed report with hallucination verification.
 
-For Go backend targets, this command delegates the security pass to the `go-security-reviewer` subagent (read-only, flow-simulation based). For a breadth-first parallel-lens review, use `/m:review:fanout`.
+For Go backend targets, this command delegates the security pass to the `go-security-reviewer` subagent (read-only, flow-simulation based). For a breadth-first parallel-lens review, use `/m:review-fanout`.
 
 ## Input
 
@@ -19,26 +19,7 @@ If no explicit target is given, review the most recent plan or local code change
 
 ## Jira Context (run before Step 0)
 
-Resolve a Jira issue for this review when possible. Follow the shared rules in `${CLAUDE_PLUGIN_ROOT}/references/jira-context.md`.
-
-Resolution order:
-
-1. **Explicit Jira URL in `$ARGUMENTS`** — full `*.atlassian.net/browse/KEY`. Highest priority.
-2. **PR URL in `$ARGUMENTS`** — derive the Jira key from the PR's head branch:
-   ```bash
-   gh pr view "$PR_URL" --json headRefName,body -q .headRefName
-   ```
-   Load `.m/jira.yml` if present and apply its `branchPattern` regex (default `([A-Z][A-Z0-9]+-\d+)`) to the branch name. If no match in the branch, also scan the PR body for a Jira URL.
-3. **Local changes without a PR** — check the current branch name (`git rev-parse --abbrev-ref HEAD`) against `branchPattern`.
-4. **Bare `KEY` in `$ARGUMENTS`** — only if `.m/jira.yml.projectKey` matches the prefix.
-
-Once a key is resolved:
-
-- Fetch the issue with `mcp__atlassian__*` tools: summary, description, status, acceptance criteria, recent comments.
-- If the `atlassian` MCP is not installed or not authenticated, note that in the review output (do not fail) and suggest `/mcp` / `claude mcp add --transport http --scope user atlassian https://mcp.atlassian.com/v1/mcp`.
-- Add a **Jira Context** block (key, title, link, status, 2–4 line summary, acceptance criteria) at the very top of the review output — above **Review Metadata**.
-- During the Deep Review pass, check whether the change actually satisfies the Jira acceptance criteria. Any gap is a finding (severity = medium unless it blocks release).
-- If no Jira key can be resolved, proceed without Jira context — **do not fail the review**.
+Resolve a Jira issue for this review when possible, per `${CLAUDE_PLUGIN_ROOT}/references/jira-context.md` (URL, PR-branch derivation, local branch name, bare-key validation, fetch, unauthenticated behavior — never fail the review over Jira). Place the **Jira Context** block (including acceptance criteria) at the very top of the review output — above **Review Metadata**. During the Deep Review pass, check whether the change actually satisfies the Jira acceptance criteria; any gap is a finding (severity = medium unless it blocks release).
 
 ## Context Sources
 
@@ -68,15 +49,9 @@ read `review`, stop and tell the user — the pipeline is out of sync.
 
 ### Step 0: Determine Footprint
 
-Before any review work, measure the change size:
+Before any review work, measure the change size with `git diff --shortstat` (unstaged), `git diff --shortstat --cached` (staged), and `git diff --name-only` (file list).
 
-```bash
-git diff --shortstat          # unstaged
-git diff --shortstat --cached # staged
-git diff --name-only          # file list
-```
-
-**Empty change set.** If all of the above show no changes (no diff, nothing staged, and the target resolves to zero changed files), there is nothing to review. Report "no change set to review" plainly, return an `N/A` verdict, and stop — do not fabricate findings or invent `file:line` references for nonexistent code, and do not return `APPROVED` or `BLOCKED`.
+**Empty change set.** If all of the above show no changes (no diff, nothing staged, the target resolves to zero changed files, and the request text itself supplies no diff to review), there is nothing to review. Report "no change set to review" plainly, return an `N/A` verdict, and stop — do not fabricate findings or invent `file:line` references for nonexistent code, and do not return `APPROVED` or `BLOCKED`. A diff supplied inline in the request text is a valid change set even when the working tree is clean — review it as given.
 
 Classify into a tier:
 
@@ -90,7 +65,7 @@ Classify into a tier:
 
 If the target is a PR URL or commit range, use `git diff --shortstat <base>...<head>` instead.
 
-**Trivial fast-path.** When the change is Trivial, still run the Phase Marker Protocol and the Step 3 verification pass — the hallucination filter is never skipped — but limit the review to the changed lines and their direct callers, skip the blast-radius mapping, regression, and compliance passes, and return `APPROVED` directly when no real issue is found. Do not spend a multi-pass budget on a one-line rename. The fast-path does not apply if the single changed line touches auth, money, a query string, crypto, a `.sql` migration, or a file matching the repo's `.m/pipeline.yml` `high_stakes_paths` — those escalate to the normal tier regardless of size.
+**Trivial fast-path.** When the change is Trivial, still run the Phase Marker Protocol and the Step 3 verification pass — the hallucination filter is never skipped — but limit the review to the changed lines and their direct callers, skip the blast-radius mapping, regression, and compliance passes, and return `APPROVED` directly when no real issue is found. Do not spend a multi-pass budget on a one-line rename. A change verified benign gets `APPROVED` with its evidence cited and nothing more. The fast-path does not apply if the single changed line touches auth, money, a query string, crypto, a `.sql` migration, or a file matching the repo's `.m/pipeline.yml` `high_stakes_paths` — those escalate to the normal tier regardless of size.
 
 ### Step 1: Review Passes (scaled by tier)
 
@@ -161,13 +136,13 @@ Then:
 
 Findings without concrete file:line evidence and verified code proof are NOT findings. Discard them.
 
-## Step 4: Codex Second Engine (mandatory when enabled)
+## Step 4: Second Engine (mandatory when a provider is selected)
 
-When `codex.enabled` is true (opt-in — see `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`), Codex review runs on **every** review automatically; there is no `y/n` prompt and no high-stakes gating. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 12 for the full flow — config resolution (Section 1), the Metered Codex Invocation via native `codex exec review` (Section 6), Fast-Mode flags (Section 3), Token Metering (Section 7), side-by-side presentation under a **Second Opinion (Codex)** section, and the "stricter verdict wins" disagreement rule.
+When `second_engine.provider` is `codex` or `kimi` (see `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`, including the legacy `codex:` fallback), the second-engine review runs on **every** review automatically; there is no `y/n` prompt and no high-stakes gating. Follow the active provider's protocol Section 12 (`${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` or `${CLAUDE_PLUGIN_ROOT}/references/kimi-protocol.md`) for the full flow — config resolution (Section 1), the Metered Invocation (Section 6), Token Metering (Section 7), side-by-side presentation under a **Second Opinion ({provider})** section, and the "stricter verdict wins" disagreement rule. Second-engine findings are leads to confirm against real code, never ground truth.
 
-Codex is skipped (noted in metadata, never a hard failure) only when `codex.enabled: false`, the CLI is unavailable, or the per-run token budget is reached. `--second-opinion` in `$ARGUMENTS` is now a no-op for enabling (it is already on); it remains accepted for backward compatibility.
+The second engine is skipped (noted in metadata, never a hard failure) only when the provider is `none`, the CLI is unavailable, or the per-run token budget is reached. `--second-opinion` in `$ARGUMENTS` is a no-op for enabling; it remains accepted for backward compatibility.
 
-Record the invocation in the Review Metadata (`Second-opinion: codex exec review --{mode}` or `none — {reason}`).
+Record the invocation in the Review Metadata (`Second opinion: codex exec review --{mode}` / `kimi -p (review prompt)` or `none — {reason}`).
 
 ### Step 5: PR Posting Gate
 
@@ -177,29 +152,7 @@ When `/m:review` is invoked directly by the user (not as a phase of `/m:develop`
 
 The remaining checks all apply only when the resolved target is a GitHub PR URL (or a PR number resolvable via `gh pr view`). For non-PR targets (local diff, commit SHA, file path), skip this step.
 
-**Suppression gates (in order; any positive match skips the post).**
-
-```bash
-# Required preconditions
-PR_URL="$RESOLVED_PR_URL"                              # already resolved from $ARGUMENTS
-gh auth status >/dev/null 2>&1 || { echo "[gate] gh not authenticated — skip post"; SKIP=1; }
-
-# Gate (b): author check
-PR_AUTHOR=$(gh pr view "$PR_URL" --json author -q .author.login 2>/dev/null) || { echo "[gate] gh pr view failed — skip post"; SKIP=1; }
-ME=$(gh api user -q .login 2>/dev/null) || { echo "[gate] gh api user failed — skip post"; SKIP=1; }
-[ -n "$PR_AUTHOR" ] && [ "$PR_AUTHOR" = "$ME" ] && { echo "[gate] you are PR author — skip post"; SKIP=1; }
-
-# Gate (c) + (d): state and draft
-PR_META=$(gh pr view "$PR_URL" --json state,isDraft -q '[.state, (.isDraft|tostring)] | @tsv' 2>/dev/null) || { echo "[gate] gh pr view failed — skip post"; SKIP=1; }
-IFS=$'\t' read -r PR_STATE PR_DRAFT <<< "$PR_META"
-[ "$PR_STATE" != "OPEN" ] && { echo "[gate] PR state $PR_STATE — skip post"; SKIP=1; }
-[ "$PR_DRAFT" = "true" ] && { echo "[gate] PR is draft — skip post"; SKIP=1; }
-
-# Gate (e): idempotence
-gh pr view "$PR_URL" --json comments,reviews -q '[.comments[].body, .reviews[].body] | .[]' 2>/dev/null | grep -q '<!-- m:review:posted -->' && { echo "[gate] prior /m:review post detected — skip post"; SKIP=1; }
-```
-
-If any gate set `SKIP=1`, do not post; print the gate reason in chat and continue to the chat Output block as today.
+**Suppression gates (in order; any positive match skips the post).** Run the shared gate script in `${CLAUDE_PLUGIN_ROOT}/references/review-post-gate.md` and honor its `SKIP=1` outcome as defined there.
 
 **Body template.** When posting, the body MUST begin with the HTML signature, followed by the same review content printed in chat:
 
@@ -256,8 +209,8 @@ Use this format:
 - **Passes run**: N
 - **Compliance pass**: yes / no / n/a
 - **Findings verified**: N of M survived verification
-- **Second opinion**: codex exec review --{mode} / none — {disabled | unavailable | budget reached}
-- **Codex tokens**: {run total from the meter} / {token_budget}
+- **Second opinion**: {provider + invocation mode} / none — {disabled | unavailable | budget reached}
+- **Second-engine tokens**: {run total from the meter} / {token_budget}
 
 ### Findings
 
@@ -290,8 +243,7 @@ Return one of:
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire review. No shortcuts: never skip a pass that the footprint tier or compliance scope requires, never emit a finding without `file:line` evidence and a verbatim Read snippet, never let the more permissive verdict win when Codex disagrees with Claude. Use tools fully: Read every cited file in the verification pass, Grep for related call sites before clearing a finding, fetch Jira via the `atlassian` MCP. Do not compress reasoning to save tokens — the self-challenge gate exists because cheap-feeling reviews are where assumption errors hide.
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` before any user-facing question (the Codex second-opinion prompt, Jira fallbacks). Resolve `[FACTUAL]` residues via Read/Grep/Glob/Bash/MCP; only `[USER-INTENT]` questions reach the user, each prefixed `[USER-INTENT]`.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). Never skip a tier-required pass; never let the more permissive verdict win when the second engine disagrees.
 - Prefer zero findings over weak findings
 - Every finding MUST include file:line proof and a verified code snippet — no exceptions
 - Every finding goes through the verification pass — no shortcuts

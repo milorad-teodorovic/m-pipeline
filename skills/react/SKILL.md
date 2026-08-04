@@ -1,15 +1,13 @@
 ---
 name: react
 description: Senior-level React and TailwindCSS development standards. Use when editing or reviewing .tsx, .jsx, React components, hooks, tailwind.config, or frontend state and styling.
-argument-hint: [task or file]
-model: sonnet
+model: claude-sonnet-5
 effort: high
 user-invocable: false
 paths:
   - "**/*.tsx"
   - "**/*.jsx"
   - "**/tailwind.config.*"
-  - "**/package.json"
 ---
 # /m:react - React & TailwindCSS Standards Mode
 

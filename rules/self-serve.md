@@ -72,7 +72,7 @@ The factual context (latency, SLO, file references) is resolved via Read before 
 
 ## Interaction with refine Phase 2
 
-The 3–5 clarifying-question floor in `m-pipeline/commands/refine.md` Phase 2 applies to `[USER-INTENT]` questions only. If the self-serve pass drains the candidate question list below 3, that is the correct outcome — emit fewer questions and a fuller `Technical Context` section. A weak refine that asks the user about facts the codebase already settled is worse than a refine with two strong intent questions and a complete context block.
+The 3–5 clarifying-question floor in `m-pipeline/commands/m/refine.md` Phase 2 applies to `[USER-INTENT]` questions only. If the self-serve pass drains the candidate question list below 3, that is the correct outcome — emit fewer questions and a fuller `Technical Context` section. A weak refine that asks the user about facts the codebase already settled is worse than a refine with two strong intent questions and a complete context block.
 
 ## Interaction with verification.md
 
@@ -90,4 +90,4 @@ The 3–5 clarifying-question floor in `m-pipeline/commands/refine.md` Phase 2 a
 
 ## Enforcement
 
-This file is loaded at every session start through `~/.claude/rules/`. It applies to every `/m:*` skill, every spawned subagent, every standalone Claude Code conversation, and every plan, review, iterate, and implement run regardless of size or "feel." It is a floor, not a preference. The pre-flight check runs before every question to the user, every time.
+This file is loaded at every session start through `${CLAUDE_PLUGIN_ROOT}/rules/`. It applies to every `/m:*` skill, every spawned subagent, every standalone Claude Code conversation, and every plan, review, iterate, and implement run regardless of size or "feel." It is a floor, not a preference. The pre-flight check runs before every question to the user, every time.

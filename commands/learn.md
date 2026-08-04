@@ -1,7 +1,7 @@
 ---
 description: Analyze stored /m:* learning signals and generate ADAPTATIONS.md when evidence is sufficient. Use to inspect or refresh per-skill behavioral adaptations derived from user feedback.
 argument-hint: [dry-run|explain <adaptation>|skill-name]
-model: sonnet
+model: claude-sonnet-5
 effort: medium
 allowed-tools: Read, Grep, Glob, Edit, Write
 ---
@@ -49,7 +49,7 @@ Keep evidence summaries short and remove contradicted adaptations.
 
 ## Application Rules
 
-0. Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md`. No shortcuts: read every JSONL signal file before scoring, do not skip a project-specific category because the global view "looks consistent", do not promote a LOW signal to MEDIUM to fill an `ADAPTATIONS.md` slot. Use file tools (Read, Edit, Write) for the JSONL files, not Bash. Do not compress reasoning — the evidence chain is what makes `explain` useful.
+0. Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` (loaded at session start). Read every signal file before scoring; never promote a LOW signal to fill a slot.
 1. HIGH: safe to apply silently
 2. MEDIUM: apply, but mention when relevant
 3. LOW: track only

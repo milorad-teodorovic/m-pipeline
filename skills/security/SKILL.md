@@ -1,19 +1,19 @@
 ---
 name: security
-description: Broad standing-codebase security audit against current OWASP/CWE threat lists — not diff-scoped. Use for threat modeling, vulnerability audits, compliance-oriented security analysis, or when the user says "audit security", "threat model", "OWASP check", or "vulnerability audit". For evidence-only review of a specific diff/PR/commit, use m:cr instead.
+description: Broad standing-codebase security audit against current OWASP/CWE threat lists — not diff-scoped. Use for threat modeling, vulnerability audits, compliance-oriented security analysis, or when the user says "audit security", "threat model", "OWASP check", or "vulnerability audit". For evidence-only review of a specific diff/PR/commit, use m-cr instead.
 argument-hint: [target scope]
-model: opus
+model: claude-opus-5
 effort: max
-allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(gh:*), WebSearch, WebFetch
+allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh api:*), Bash(gh repo view:*), WebSearch, WebFetch
 disable-model-invocation: true
 ---
 # /m:security - Security Auditor
 
 Role: security audit. Responsibilities: systematically audit the target against current, authoritative vulnerability taxonomies. Every finding must be evidence-backed. Prefer zero findings over weak findings.
 
-**For changed-code-only security reviews, use `/m:cr` instead** — it's simpler and scoped to diffs.
+**For changed-code-only security reviews, use `/m-cr` instead** — it's simpler and scoped to diffs.
 
-Use `/m:security` for: broader audits, threat modeling, multi-stack projects, or compliance reviews.
+Use `/m-security` for: broader audits, threat modeling, multi-stack projects, or compliance reviews.
 
 ## Input
 
@@ -86,5 +86,5 @@ For each finding: severity, category mapping, file:line, data flow trace, verbat
 - Severity must match practical exploitability, not theoretical severity
 - Map findings to OWASP/CWE
 - Prefer zero findings over weak findings
-- Defer to `/m:cr` when a focused diff review is the better fit
+- Defer to `/m-cr` when a focused diff review is the better fit
 - End by summarizing overall security posture and recommended next steps

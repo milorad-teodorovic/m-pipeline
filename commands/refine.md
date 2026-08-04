@@ -1,7 +1,7 @@
 ---
 description: Turn a raw request into an execution-ready PRD via active grilling. Use when user says "ask questions", "examine", "challenge this", "what am I missing", "stress test", "let's align", or wants a refined spec before planning or implementation.
 argument-hint: [request]
-model: opus
+model: claude-opus-5
 effort: high
 ---
 # /m:refine - Request Refinement (Grill Stage)
@@ -16,13 +16,7 @@ Raw request: `$ARGUMENTS`
 
 ## Jira Context (run before workflow phases)
 
-If `$ARGUMENTS` contains a Jira reference (full `*.atlassian.net/browse/KEY` URL, or a bare `KEY` that matches `.m/jira.yml` `projectKey`), fetch the story via the `atlassian` MCP server **before** Phase 1. Follow the shared rules in `${CLAUDE_PLUGIN_ROOT}/references/jira-context.md`.
-
-- Load `.m/jira.yml` if present for `site`, `projectKey`, and `branchPattern`.
-- Use `mcp__atlassian__*` tools to fetch: summary, description, status, acceptance criteria, recent comments.
-- If the `atlassian` MCP is not installed or not authenticated, stop and instruct the user to run `/mcp` (or `claude mcp add --transport http --scope user atlassian https://mcp.atlassian.com/v1/mcp` if missing entirely).
-- Prepend a **Jira Context** block (key, title, link, status, 2–4 line summary) to the final output.
-- Treat the Jira story as authoritative requirements. If `$ARGUMENTS` contradicts it, list conflicts under **Conflicts with Jira**.
+If `$ARGUMENTS` contains a Jira reference, resolve and fetch it per `${CLAUDE_PLUGIN_ROOT}/references/jira-context.md` **before any workflow phase, including the Phase 0 reframe** — detection, fetch via the `atlassian` MCP, unauthenticated behavior, the **Jira Context** block, and conflict surfacing are all defined there.
 
 ## Context Sources
 
@@ -88,6 +82,8 @@ Every question that reaches the user MUST be prefixed `[USER-INTENT]` in the men
 
 **Mandatory for anything larger than a trivial fix.** Do not skip this phase to save turns. The 3–5 question floor applies to `[USER-INTENT]` questions only. If the self-serve gate drains the candidate list below 3, emit fewer questions and a fuller Technical Context section — that is the correct outcome.
 
+**Complete-input fast path.** When the request is already complete and unambiguous — every candidate question drains through the self-serve gate and no `[USER-INTENT]` residue remains — do not manufacture gaps: run a single confirmation round restating the collapsed spec, and when no requester round-trip is possible, state the collapsed decisions as explicit assumptions and emit the full specification.
+
 1. **Validate file references** against actual repo state.
 2. **Emit 3–5 clarifying questions, each as a bounded menu** of 2–4 selectable options (plus an explicit "none of these / I'll describe it" escape hatch). No open-ended prose questions — menus force a decision and prevent runaway question trees. Format each as:
 
@@ -104,7 +100,7 @@ Every question that reaches the user MUST be prefixed `[USER-INTENT]` in the men
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire refine. No shortcuts: do not skip Phase 0 (optimal-version reframe) for anything larger than a trivial bug, do not accept the first spec without at least one grill round, do not paraphrase a requirement to make it easier to satisfy. Use tools fully: validate every cited file path against actual repo state, fetch Jira via the `atlassian` MCP rather than improvising, prefer `context7` for library questions. Do not compress reasoning to save tokens — the grill is the value producer; collapsing it silently downgrades every downstream stage.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). The grill is the value producer — do not collapse it.
 - Prefer concrete acceptance criteria over generic summaries
 - If UI work is involved, preserve the existing design system unless the user explicitly asks for a redesign
 - If repo health limits confidence, say so in Assumptions
@@ -121,10 +117,18 @@ Return:
 ### Scope
 ### Out of Scope
 ### Success Criteria
-[Target state expressed as observable conditions, not activities. Read by `/m:iterate` as exit-predicate input. Example: "`go test ./...` exits 0", "user completes checkout without redirect loop", "API returns 401 when token missing". Avoid "improve X" or "make it work".]
+[Target state expressed as observable conditions, not activities. Read by `/m:iterate` as exit-predicate input, and persisted to `.m/PRD-<slug>.md` under the exact heading `## 8. Success Criteria` (see Persistence) so the iterate gate can verify it. Example: "`go test ./...` exits 0", "user completes checkout without redirect loop", "API returns 401 when token missing". Avoid "improve X" or "make it work".]
 ### Acceptance Criteria
 ### Technical Context
 ### Security or Data Impact
 ### Test Requirements
 ### Assumptions
 ### Recommended Next Command
+
+## Persistence
+
+Persist the refined specification so downstream stages — and `/m:iterate`'s exit predicate — can consume it:
+
+1. Write the full **Refined Specification** to `.m/PRD-<slug>.md`, where `<slug>` is a short kebab-case identifier derived from the goal. Create `.m/` if missing. Use full prose (it is a downstream-consumed artifact); keep the chat output as the human-facing summary.
+2. In that file, the success-criteria section MUST use the exact heading `## 8. Success Criteria` (a numbered H2). `/m:iterate` clause 4 scans `.m/PRD-*.md` for that exact heading and gates `PASSED` on every listed condition, so the text must match. Each condition is a target-state predicate (exit code, observable flow, response code, latency bound), not an activity.
+3. When invoked as the refine phase of `/m:develop`, always persist so the iterate gate has a target. For a standalone quick spec the user explicitly wants kept in chat only, persistence may be skipped — in which case `/m:iterate` clause 4 resolves to `n/a`.

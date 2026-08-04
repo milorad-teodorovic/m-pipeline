@@ -1,8 +1,8 @@
-# Codex Dual-Engine Protocol (referenced from `/m:plan`, `/m:research`, `/m:review`, `/m:review-fanout`, `/m:develop`)
+# Codex Second-Engine Protocol (referenced from `/m:plan`, `/m:research`, `/m:review`, `/m:review-fanout`, `/m:develop`)
 
 ## Contents
 
-- [1. Configuration: `.m/pipeline.yml` `codex:` section](#1-configuration-mpipelineyml-codex-section)
+- [1. Configuration: `.m/pipeline.yml` `second_engine:` section](#1-configuration-mpipelineyml-second_engine-section)
 - [2. Pre-flight: Availability and Enablement](#2-pre-flight-availability-and-enablement)
 - [3. Fast-Mode Flag Construction](#3-fast-mode-flag-construction)
 - [4. Operating-Rules Preamble (parity)](#4-operating-rules-preamble-parity)
@@ -16,54 +16,33 @@
 - [12. Review: Mandatory Second Engine](#12-review-mandatory-second-engine)
 - [13. Handoff Cleanup](#13-handoff-cleanup)
 
-This reference defines the dual-engine handoff used by `/m:plan` (Pass-1 and Pass-2), the parallel dual-engine research used by `/m:research`, and the mandatory second-engine review used by `/m:review` and `/m:review-fanout`. The pipeline commands link here so their main bodies stay focused on workflow.
+This reference defines the Codex half of the second-engine handoff used by `/m:plan` (Pass-1 and Pass-2), the parallel dual-engine research used by `/m:research`, and the mandatory second-engine review used by `/m:review` and `/m:review-fanout`. The pipeline commands link here so their main bodies stay focused on workflow. The Kimi half lives in `kimi-protocol.md` with matching section numbers.
 
-Codex participation is **configuration-driven and mandatory when enabled**. The previous behavior — optional dual-engine gated behind a per-invocation `y/n` prompt and a fixed two-call round budget — has been replaced by the `codex:` config section (Section 1) plus token metering (Section 7). When Codex is enabled, every applicable pass runs Codex automatically; there is no per-pass permission prompt. When Codex is disabled, every Codex pass is skipped silently and the command runs Claude-only.
+Codex participation is **configuration-driven and mandatory when selected**: when `second_engine.provider` is `codex`, every applicable pass runs Codex automatically with no per-pass permission prompt. When the provider is `none` or `kimi`, every Codex pass in this file is skipped silently.
 
-## 1. Configuration: `.m/pipeline.yml` `codex:` section
+## 1. Configuration: `.m/pipeline.yml` `second_engine:` section
 
-All Codex behavior is controlled by the `codex:` section of the per-project `.m/pipeline.yml` file (full schema in `pipeline-context.md`). Read this section once at the start of any command that uses Codex and hold the resolved values in working memory for the remainder of the run.
+All Codex behavior is controlled by the `second_engine:` section of the per-project `.m/pipeline.yml` (full schema, provider defaults, key-interpretation table, and the legacy `codex:` fallback in `pipeline-context.md`). Read it once at the start of any command that uses the second engine and hold the resolved values for the remainder of the run.
 
-```yaml
-codex:
-  enabled: false              # master switch. true = run Codex; false (default) = Claude-only.
-  fast_mode: false            # true = add fast-mode flags (Section 3, ~2.5x credit rate); off by default.
-  model: gpt-5.5              # model passed to Codex.
-  reasoning_effort: xhigh     # model_reasoning_effort passed to Codex.
-  token_budget: 200000        # cumulative Codex tokens allowed per /m run before metering triggers.
-  on_budget_exceeded: fallback   # "fallback" (finish Claude-only) | "stop" (halt and save progress).
-```
-
-**Defaults when `.m/pipeline.yml` is absent, or the `codex:` section is missing or partial:**
-
-| Key | Default |
-|---|---|
-| `enabled` | `false` |
-| `fast_mode` | `false` |
-| `model` | `gpt-5.5` |
-| `reasoning_effort` | `xhigh` |
-| `token_budget` | `200000` |
-| `on_budget_exceeded` | `fallback` |
-
-Codex is **off by default** — the pipeline runs Claude-only until you opt in. To enable the dual-engine passes for a repository, set `codex.enabled: true` in that repo's `.m/pipeline.yml` (requires the `codex` CLI on `PATH`). Fast mode is a separate opt-in via `codex.fast_mode: true` (faster, but ~2.5x the credit rate and ChatGPT-auth only).
+**Codex-provider defaults when keys are absent** (from `pipeline-context.md`): `model: gpt-5.6-sol`, `reasoning_effort: high`, `fast_mode: false`, `token_budget: 200000`, `on_budget_exceeded: fallback`. Valid `model_reasoning_effort` values depend on the model family per the OpenAI config reference (gpt-5.6 family snapshot, checked 2026-07-25: `low|medium|high|xhigh|max|ultra`; `ultra` is slow and unsuitable for metered `/m` passes). A legacy `codex:` section with `enabled: true` resolves to `provider: codex` per the fallback rules in `pipeline-context.md`; when that mapping is used, note the deprecation once in the run metadata.
 
 Bind the resolved values to named shell variables used by the rest of this protocol:
 
 ```bash
-# Resolve config (parse .m/pipeline.yml codex: section; fall back to defaults when keys are absent).
-CODEX_ENABLED=false           # from codex.enabled, default false (opt-in)
-CODEX_FAST=false              # from codex.fast_mode, default false (opt-in)
-CODEX_MODEL=gpt-5.5           # from codex.model, default gpt-5.5
-CODEX_EFFORT=xhigh            # from codex.reasoning_effort, default xhigh
-CODEX_BUDGET=200000           # from codex.token_budget, default 200000
-CODEX_ON_EXCEED=fallback      # from codex.on_budget_exceeded, default fallback
+# Resolve config (parse .m/pipeline.yml second_engine: section, applying the legacy
+# codex: fallback and the pipeline-context.md codex defaults when keys are absent).
+CODEX_FAST=false              # from second_engine.fast_mode, default false
+CODEX_MODEL=gpt-5.6-sol       # from second_engine.model, default gpt-5.6-sol
+CODEX_EFFORT=high             # from second_engine.reasoning_effort, default high
+CODEX_BUDGET=200000           # from second_engine.token_budget, default 200000
+CODEX_ON_EXCEED=fallback      # from second_engine.on_budget_exceeded, default fallback
 ```
 
 ## 2. Pre-flight: Availability and Enablement
 
 Run this once before the first Codex pass of a command.
 
-1. If `CODEX_ENABLED` is `false`: set `CODEX_DISABLED=true`, skip every Codex pass for the rest of the run, do not prompt, do not warn. The command proceeds Claude-only. Stop here.
+1. If the resolved provider is not `codex`: set `CODEX_DISABLED=true`, skip every Codex pass for the rest of the run, do not prompt, do not warn. The command proceeds Claude-only (or under the Kimi protocol when the provider is `kimi`). Stop here.
 2. Otherwise, verify the CLI: run `codex --version` via Bash.
    - If the command fails, is not on PATH, or reports a version older than `0.123.0`: print verbatim `[WARN] codex enabled but unavailable — proceeding Claude-only. Upgrade: npm install -g @openai/codex@latest`, set `CODEX_DISABLED=true`, and proceed Claude-only.
    - Otherwise: set `CODEX_DISABLED=false`. Initialize the token meter: `mkdir -p .m/handoff && echo 0 > .m/handoff/codex-meter.txt`.
@@ -72,7 +51,7 @@ Because Codex is mandatory when enabled, a genuine CLI failure is surfaced loudl
 
 ## 3. Fast-Mode Flag Construction
 
-Fast mode is driven by the `codex.fast_mode` toggle (off by default), applied as per-invocation flags so the toggle is authoritative for `/m` regardless of any global `~/.codex/config.toml` setting. The on-path adds the fast flags; the off-path explicitly disables fast so a global fast default cannot leak into a `/m` run. The pipeline never edits the global `config.toml`.
+Fast mode is driven by the `codex.fast_mode` toggle, applied as per-invocation flags so the toggle is authoritative for `/m` regardless of the user's global `~/.codex/config.toml`. The user's global config now defaults fast mode **on** (`service_tier = "fast"`, `[features] fast_mode = true`), so the toggle's job on the off-side is to **actively disable** it for the run — omitting flags would leave the global default in force. The pipeline never edits the global `config.toml`.
 
 The official fast-mode keys (OpenAI Codex docs, `developers.openai.com/codex/speed`) are the config value `service_tier = "fast"` and the feature flag `features.fast_mode = true`. As per-invocation overrides these are `-c 'service_tier="fast"'` / `--enable fast_mode` to turn it on, and `--disable fast_mode` (the documented `-c features.fast_mode=false`, verified to flip the effective state via `codex features list`) to turn it off.
 
@@ -84,7 +63,7 @@ else
 fi
 ```
 
-Fast mode on `gpt-5.5` increases speed ~1.5x and consumes credits at ~2.5x the standard rate. It requires a ChatGPT-authenticated Codex login (API-key auth falls back to standard pricing). It applies to every metered invocation below.
+Fast mode on GPT-5.x models increases speed ~1.5x and consumes credits at ~2.5x the standard rate. It requires a ChatGPT-authenticated Codex login (API-key auth falls back to standard pricing; this install is `auth_mode = chatgpt`, so it is eligible). It applies to every metered invocation below.
 
 ## 4. Operating-Rules Preamble (parity)
 
@@ -260,7 +239,7 @@ Runs after the three exit-gate checks pass, before the plan document is emitted.
 
 2. Apply the Secret Redaction Rule. Write it to `.m/handoff/claude-to-codex.md` (overwriting any Pass-1 content).
 3. Set `CODEX_MODE=exec` and `CODEX_PROMPT="$(cat .m/handoff/claude-to-codex.md)"`, then run the Metered Codex Invocation (Section 6).
-4. Read `.m/handoff/codex-to-claude.md`. Parse the final non-empty line:
+4. **First check `CODEX_DISABLED`.** If the Section 6 invocation flipped it to `true` (a mid-pass CLI failure), do not read or parse a verdict — the `codex-to-claude.md` on disk is stale Pass-1 content, and parsing it would misroute a degradation into a spurious `VERDICT: CHANGES` re-grill. Skip directly to the `CODEX_DISABLED=true` degradation below (finalize tasks, run Handoff Cleanup, emit the plan Claude-only). Otherwise, read `.m/handoff/codex-to-claude.md` and parse the final non-empty line:
    - If it is exactly `VERDICT: LGTM`: finalize tasks, run Handoff Cleanup, emit the plan.
    - If it is exactly `VERDICT: CHANGES`: parse the numbered disagreements above it and enter the Disagreement Menu (Section 10).
    - If neither verdict string is present on the last non-empty line: treat as `VERDICT: CHANGES` (conservative default). If no parseable disagreements are listed, hard-block and re-grill the user on the final plan content.
@@ -295,7 +274,7 @@ After all picks are applied, run one final Codex verification pass if the token 
 
 ## 11. Research: Parallel Dual-Engine Researcher
 
-Used by `/m:research` (and by `/m:plan`'s worktree research spawn) when `CODEX_ENABLED` is true. Codex researches the same questions independently and in parallel with Claude's research agent; Claude then reconciles both into one finding set. This mirrors the plan dual-engine model.
+Used by `/m:research` (and by `/m:plan`'s worktree research spawn) when the provider is `codex` and `CODEX_DISABLED` is false. Codex researches the same questions independently and in parallel with Claude's research agent; Claude then reconciles both into one finding set. This mirrors the plan dual-engine model.
 
 1. After forming the 2–5 focused research questions, write them (plus relevant file paths and the Operating-Rules Preamble) to `.m/handoff/claude-to-codex.md`, redacted per Section 5, with this instruction appended:
 
@@ -312,7 +291,7 @@ If `CODEX_DISABLED=true`, run Claude-only research exactly as before.
 
 ## 12. Review: Mandatory Second Engine
 
-Used by `/m:review` and `/m:review-fanout`. When `CODEX_ENABLED` is true, Codex review runs on **every** review — it is no longer gated behind a high-stakes category or a `y/n` prompt. (The high-stakes categories still drive Claude's own pass depth and the compliance pass; they no longer gate Codex.)
+Used by `/m:review` and `/m:review-fanout`. When the provider is `codex` and `CODEX_DISABLED` is false, Codex review runs on **every** review — it is not gated behind a high-stakes category or a `y/n` prompt. (The high-stakes categories still drive Claude's own pass depth and the compliance pass; they no longer gate Codex.)
 
 1. After Claude's primary review produces its verdict, set `CODEX_MODE=review` and the target flag:
    - `CODEX_REVIEW_FLAG="--uncommitted"` for staged + unstaged + untracked changes

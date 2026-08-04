@@ -7,7 +7,7 @@
     {
       "name": "m",
       "source": "./",
-      "description": "End-to-end software delivery pipeline (refine → plan → implement → review → iterate) with phase-marker enforcement, dual-engine planning and review, parallel-lens fan-out review, Jira MCP integration, and per-stack expert modes."
+      "description": "End-to-end software delivery pipeline (refine → plan → implement → review → iterate) with phase-marker enforcement, a configurable second engine for planning and review (Codex, Kimi, or none), parallel-lens fan-out review, Jira MCP integration, and per-stack expert modes."
     }
   ]
 }

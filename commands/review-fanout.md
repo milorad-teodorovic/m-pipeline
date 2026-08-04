@@ -1,11 +1,11 @@
 ---
 description: Parallel-lens code review — blind specialist subagents (security, architecture, tests, performance, migrations, observability, api-contracts, compliance) reconciled by a judge pass. Use for medium-to-large diffs (4+ files) or cross-stack changes.
 argument-hint: [target]
-model: opus
+model: claude-opus-5
 effort: xhigh
-allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(gh:*), Bash(codex:*), Agent
+allowed-tools: Read, Grep, Glob, Write, Bash(git:*), Bash(gh:*), Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(mkdir:*), Bash(python3:*), Bash(rm:*), Agent
 ---
-# /m:review:fanout - Parallel-Lens Review
+# /m:review-fanout - Parallel-Lens Review
 
 Fan out a change set to several specialist reviewer subagents **in parallel**, each blind to the others, then reconcile their findings with a judge pass. Complements `/m:review` — use this when the target is medium/large, crosses domain boundaries, or needs breadth rather than a single deep serial sweep.
 
@@ -54,13 +54,7 @@ read `review`, stop and tell the user — the pipeline is out of sync.
 
 ### Step 0: Footprint + Lens Selection
 
-Measure the change:
-
-```bash
-git diff --shortstat
-git diff --shortstat --cached
-git diff --name-only
-```
+Measure the change with `git diff --shortstat` (unstaged), `git diff --shortstat --cached` (staged), and `git diff --name-only` (file list).
 
 **Empty change set.** If there is no diff, nothing staged, and the target resolves to zero changed files, there is nothing to review — report "no change set to review" plainly, return an `N/A` verdict, and stop. Do not spawn lenses or fabricate findings for nonexistent code.
 
@@ -131,11 +125,11 @@ Judge responsibilities:
    - Tests say "happy path covered", contracts say "new error case added" → test gap
 5. **Rank** by merged severity.
 
-### Step 3: Codex Second Engine (mandatory when enabled)
+### Step 3: Second Engine (mandatory when a provider is selected)
 
-When `codex.enabled` is true (opt-in — see `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`), Codex review runs on **every** fanout review automatically; there is no `y/n` prompt and no high-stakes gating. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 12 for the full flow — config resolution (Section 1), the Metered Codex Invocation via native `codex exec review` (Section 6), Fast-Mode flags (Section 3), and Token Metering (Section 7). `--second-opinion` in `$ARGUMENTS` is a no-op for enabling (already on); accepted for backward compatibility. Codex is skipped (noted in metadata, never a hard failure) only when `codex.enabled: false`, the CLI is unavailable, or the per-run token budget is reached.
+When `second_engine.provider` is `codex` or `kimi` (see `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`, including the legacy `codex:` fallback), the second-engine review runs on **every** fanout review automatically; there is no `y/n` prompt and no high-stakes gating. Follow the active provider's protocol Section 12 (`${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` or `${CLAUDE_PLUGIN_ROOT}/references/kimi-protocol.md`) for the full flow — config resolution (Section 1), the Metered Invocation (Section 6), and Token Metering (Section 7). `--second-opinion` in `$ARGUMENTS` is a no-op for enabling; accepted for backward compatibility. The second engine is skipped (noted in metadata, never a hard failure) only when the provider is `none`, the CLI is unavailable, or the per-run token budget is reached.
 
-**Fanout-specific handling.** Emit Codex's findings under a dedicated **Second Opinion (Codex)** section alongside the judge verdict — do **not** merge it into the judge's findings list automatically. Apply Section 12's "stricter verdict wins" rule: if the judge says `APPROVED` but Codex flags criticals that survive the hallucination filter, downgrade the verdict to `BLOCKED` and surface the disagreement at the top of the output.
+**Fanout-specific handling.** Emit the second engine's findings under a dedicated **Second Opinion ({provider})** section alongside the judge verdict — do **not** merge it into the judge's findings list automatically. Apply Section 12's "stricter verdict wins" rule: if the judge says `APPROVED` but the second engine flags criticals that survive the hallucination filter, downgrade the verdict to `BLOCKED` and surface the disagreement at the top of the output.
 
 ### Step 4: PR Posting Gate
 
@@ -147,29 +141,7 @@ For fanout, the `{Findings block}` in the body template refers to the judge-reco
 
 The remaining checks all apply only when the resolved target is a GitHub PR URL (or a PR number resolvable via `gh pr view`). For non-PR targets (local diff, commit SHA, file path), skip this step.
 
-**Suppression gates (in order; any positive match skips the post).**
-
-```bash
-# Required preconditions
-PR_URL="$RESOLVED_PR_URL"                              # already resolved from $ARGUMENTS
-gh auth status >/dev/null 2>&1 || { echo "[gate] gh not authenticated — skip post"; SKIP=1; }
-
-# Gate (b): author check
-PR_AUTHOR=$(gh pr view "$PR_URL" --json author -q .author.login 2>/dev/null) || { echo "[gate] gh pr view failed — skip post"; SKIP=1; }
-ME=$(gh api user -q .login 2>/dev/null) || { echo "[gate] gh api user failed — skip post"; SKIP=1; }
-[ -n "$PR_AUTHOR" ] && [ "$PR_AUTHOR" = "$ME" ] && { echo "[gate] you are PR author — skip post"; SKIP=1; }
-
-# Gate (c) + (d): state and draft
-PR_META=$(gh pr view "$PR_URL" --json state,isDraft -q '[.state, (.isDraft|tostring)] | @tsv' 2>/dev/null) || { echo "[gate] gh pr view failed — skip post"; SKIP=1; }
-IFS=$'\t' read -r PR_STATE PR_DRAFT <<< "$PR_META"
-[ "$PR_STATE" != "OPEN" ] && { echo "[gate] PR state $PR_STATE — skip post"; SKIP=1; }
-[ "$PR_DRAFT" = "true" ] && { echo "[gate] PR is draft — skip post"; SKIP=1; }
-
-# Gate (e): idempotence
-gh pr view "$PR_URL" --json comments,reviews -q '[.comments[].body, .reviews[].body] | .[]' 2>/dev/null | grep -q '<!-- m:review:posted -->' && { echo "[gate] prior /m:review post detected — skip post"; SKIP=1; }
-```
-
-If any gate set `SKIP=1`, do not post; print the gate reason in chat and continue to the chat Output block as today.
+**Suppression gates (in order; any positive match skips the post).** Run the shared gate script in `${CLAUDE_PLUGIN_ROOT}/references/review-post-gate.md` and honor its `SKIP=1` outcome as defined there.
 
 **Body template.** When posting, the body MUST begin with the HTML signature, followed by the same review content printed in chat:
 
@@ -216,8 +188,8 @@ Return in chat only. Format:
 - **Findings per lens**: security:N, architecture:N, ...
 - **Merged findings**: N after dedup
 - **Re-verified critical+high**: N of M survived
-- **Second opinion**: codex exec review --{mode} — {agree | disagree with Claude judge} / none — {disabled | unavailable | budget reached}
-- **Codex tokens**: {run total from the meter} / {token_budget}
+- **Second opinion**: {provider + invocation mode} — {agree | disagree with Claude judge} / none — {disabled | unavailable | budget reached}
+- **Second-engine tokens**: {run total from the meter} / {token_budget}
 
 ### Findings
 
@@ -256,8 +228,7 @@ Use the templates in `${CLAUDE_PLUGIN_ROOT}/references/lens-templates.md` as the
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` to every lens and the judge. No shortcuts: never spawn lenses serially to "save context", never let a lens emit a finding without `file:line` evidence + verbatim Read snippet, never let the more permissive Codex/judge verdict win silently. Use tools fully: lenses Read every cited file in their lane, the judge Reads every cross-lens conflict before resolving it. Do not compress reasoning to save tokens — fanout is breadth-first by design, and collapsing it defeats the pattern.
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` before any user-facing question (the Codex second-opinion prompt, Jira fallbacks). Resolve `[FACTUAL]` residues via Read/Grep/Glob/Bash/MCP; only `[USER-INTENT]` questions reach the user, each prefixed `[USER-INTENT]`.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start) to every lens and the judge. Fanout is breadth-first by design — never spawn lenses serially, never let the more permissive verdict win silently.
 - Lenses run in **parallel and blind**. Breaking either property breaks the pattern.
 - Every lens applies `${CLAUDE_PLUGIN_ROOT}/rules/verification.md`. No exceptions.
 - Judge re-verifies every critical and high finding. No exceptions.

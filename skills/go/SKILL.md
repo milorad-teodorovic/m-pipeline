@@ -1,8 +1,7 @@
 ---
 name: go
 description: Senior-level Go development and review standards. Use when editing or reviewing .go files, go.mod, go.work, Go-based services, goroutines, channels, or Go test files.
-argument-hint: [task or file]
-model: sonnet
+model: claude-sonnet-5
 effort: high
 user-invocable: false
 paths:

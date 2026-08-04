@@ -1,7 +1,7 @@
 {
   "name": "m",
-  "description": "End-to-end software delivery pipeline (refine → plan → implement → review → iterate) with phase-marker enforcement, dual-engine planning and review (Claude + Codex), parallel-lens fan-out review, Jira MCP integration, and per-stack expert modes (Go, React, business logic, security).",
-  "version": "1.0.0",
+  "description": "End-to-end software delivery pipeline (refine → plan → implement → review → iterate) with phase-marker enforcement, a configurable second engine for planning and review (Codex, Kimi, or none), parallel-lens fan-out review, Jira MCP integration, and per-stack expert modes (Go, React, business logic, security).",
+  "version": "1.1.0",
   "license": "MIT",
   "author": {
     "name": "m-pipeline contributors"

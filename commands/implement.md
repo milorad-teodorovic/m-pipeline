@@ -1,7 +1,7 @@
 ---
-description: Implement an approved plan or a direct request using repo patterns. Use after /m:plan completes or for clear direct asks. Writes code; explicit invocation only.
+description: Implement an approved plan or a direct request using repo patterns. Use after /m:plan completes or for clear direct asks. Writes code.
 argument-hint: [plan-or-request]
-model: opus
+model: claude-opus-5
 effort: xhigh
 disable-model-invocation: false
 ---
@@ -15,13 +15,7 @@ Approved plan or implementation instructions: `$ARGUMENTS`
 
 ## Jira Context (run before implementation)
 
-If `$ARGUMENTS` contains a Jira reference (full `*.atlassian.net/browse/KEY` URL, or a bare `KEY` that matches `.m/jira.yml` `projectKey`), fetch the story via the `atlassian` MCP server **before** starting implementation. Follow the shared rules in `${CLAUDE_PLUGIN_ROOT}/references/jira-context.md`.
-
-- Load `.m/jira.yml` if present for `site`, `projectKey`, `branchPattern`.
-- Use `mcp__atlassian__*` tools to fetch: summary, description, status, acceptance criteria, recent comments.
-- If the `atlassian` MCP is not installed or not authenticated, stop and instruct the user to run `/mcp` (or add it with `claude mcp add --transport http --scope user atlassian https://mcp.atlassian.com/v1/mcp`).
-- Prepend a **Jira Context** block (key, title, link, status, 2–4 line summary) to the Implementation Summary.
-- Treat Jira acceptance criteria as the verification target. If your implementation cannot satisfy all of them, list the gaps under **Deviations**.
+If `$ARGUMENTS` contains a Jira reference, resolve and fetch it per `${CLAUDE_PLUGIN_ROOT}/references/jira-context.md` **before** starting implementation. Treat Jira acceptance criteria as the verification target; if the implementation cannot satisfy all of them, list the gaps under **Deviations**.
 
 ## Context Sources
 
@@ -76,8 +70,7 @@ This classification drives how aggressively to proceed vs pause for confirmation
 
 ## Implementation Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire implementation. No shortcuts: do not skip the test runs the plan calls for, do not silently drift from `[CONFIRMED]` plan elements, do not bypass `--no-verify`/`--force`-style escape hatches, and do not collapse multi-step tasks into one to "save time". Use tools fully: Read every file before editing, prefer `Edit`/`Write` over Bash for file mutation, run independent tool calls in parallel, and use the `atlassian` MCP for Jira context rather than improvising acceptance criteria. Do not compress reasoning or skip verification to save tokens — caveman applies only to chat output.
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md`. Before asking the user any question during implementation, run the self-serve pass: Read the file, Grep the symbol, run the test, call the MCP. Only escalate `[USER-INTENT]` residues (genuine plan defects, undecided design choices) back to the plan stage. Do not ask the user about facts the repository already records.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start): run the test runs the plan calls for, stay on `[CONFIRMED]` plan elements, escalate only genuine plan defects.
 - Match established project patterns exactly
 - Reuse shared types, components, utilities, and services before creating new ones
 - Keep the change to the minimum that satisfies the request. Do not add features, refactor adjacent code, or make "improvements" beyond what was asked — a bug fix does not need the surrounding code cleaned up. The right amount of complexity is the minimum needed for the current task; do not introduce abstractions, configuration knobs, or defensive layers the request did not call for. Validate input only at system boundaries such as user input and external API responses, not at every internal call site.

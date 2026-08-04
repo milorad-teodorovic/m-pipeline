@@ -146,4 +146,6 @@ Output: findings with file:line + explicit consumer impact statement. Self-chall
 
 ## compliance
 
+```
 Use the per-repo compliance scope from `/m:review` Pass 4 — load `.m/pipeline.yml` and apply its `compliance.frameworks` and `compliance.rules` (plus `.business/` specs if present). Label all findings with `[COMPLIANCE]`. Self-challenge each finding against the declared compliance scope.
+```

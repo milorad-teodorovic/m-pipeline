@@ -3,7 +3,7 @@ description: Deep analysis of code, docs, systems, or flows with cached results 
 argument-hint: [prompt|setup|list|open <slug>]
 model: opus
 effort: high
-allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(d2:*), Bash(typst:*), Agent
+allowed-tools: Read, Grep, Glob, Write, Edit, Bash(git:*), Bash(d2:*), Bash(typst:*), Agent
 ---
 # /m:analyze - Deep Analysis Engine
 
@@ -107,7 +107,7 @@ If the user did not specify an output format, ask what they want next after pres
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire analyze run. No shortcuts: do not grade architecture, style, or maintainability without Reading first-party code in this session; do not skip the maintainability-signal collection because it "feels obvious"; do not reuse cached analysis when the underlying code has changed. Use tools fully: spawn `Explore` (`model: haiku` — read-only breadth sweep) for breadth, run `d2`/`typst` for diagrams when requested, prefer the docs MCP for external references. Do not compress reasoning to save tokens — analysis is the input that downstream `/m:plan` and `/m:review` runs anchor to.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). Do not reuse cached analysis when the underlying code has changed.
 - Prefer primary sources and local code over generic summaries
 - Make uncertainty explicit
 - If the repo is incomplete, extracted, vendored, or not buildable from source, say that explicitly and lower confidence where appropriate

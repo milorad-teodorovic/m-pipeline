@@ -1,7 +1,7 @@
 ---
 description: Post-implementation verification loop — run tests, fix issues, re-check until exit predicate is satisfied or the 3-loop safety cap is reached. Use after /m:implement or when verifying recent code changes.
 argument-hint: [scope-or-check]
-model: sonnet
+model: claude-sonnet-5
 effort: high
 disable-model-invocation: false
 ---
@@ -103,18 +103,19 @@ Brief log of what each loop found and fixed (1-2 lines per loop).
 - Tests green: yes / no — {command and exit code}
 - Zero critical review findings: yes / no / n/a — {count and severity}
 - PROGRESS.md updated: yes / no
+- PRD Success Criteria satisfied: yes / no / n/a — {which criteria, or n/a if no `.m/PRD-*.md`}
 ### Verdict
 
 Use `PASSED` or `BLOCKED` for the final verdict.
 
-- `PASSED` requires all three exit-predicate clauses = yes (or `n/a` for clause 2 when no review was run).
+- `PASSED` requires all four exit-predicate clauses = yes (or `n/a` for clause 2 when no review was run, and `n/a` for clause 4 when no `.m/PRD-*.md` exists for this change).
 - `BLOCKED` means at least one clause failed. Name which one(s) and why.
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire iterate run. No shortcuts: never declare `PASSED` on the loop-count cap, never claim "tests pass" without quoting the command and exit code, never assume a fix worked without re-running the check, never collapse a PRD success-criterion check because verifying it "feels expensive". Use tools fully: run the actual test/lint/build commands, Read every fixed region after the edit, Grep for related call sites the fix may have broken. Do not compress reasoning — every loop carries forward the full failure context, not a summary.
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md`. Resolve every factual question via tools before pausing the loop to ask the user. Run the test, Read the failing region, Grep the symbol. Only `[USER-INTENT]` residues (acceptance-criterion ambiguity that no source resolves, scope decisions outside the PRD) interrupt iteration.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). `PASSED` requires the exit predicate with quoted commands and exit codes — never the loop cap, never an un-re-run fix.
 - Re-run the relevant checks after every fix loop
+- An intermittently failing test is characterized before it is judged: re-run it several times, report the observed pass/fail pattern as an open item, and never let a single green re-run count as conclusive
 - Keep CURRENT issues separate from PRE-EXISTING gaps
 - If there are no tests, say that explicitly and fall back to the best available verification
 - If the repo is incomplete or missing build metadata, say exactly what could not be verified and why

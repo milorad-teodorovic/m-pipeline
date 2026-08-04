@@ -1,18 +1,15 @@
----
-name: Jira Context
-description: Shared rules for pulling Jira stories into /m:* workflows via the `atlassian` MCP server.
----
-
 # Jira Context — shared workflow fragment
 
-This file is the single source of truth for how `/m:refine`, `/m:plan`, `/m:implement`, and `/m:review` pull Jira stories. Each of those commands references this file.
+This file is the single source of truth for how `/m:refine`, `/m:plan`, `/m:implement`, `/m:review`, `/m:review-fanout`, and the `m-cr` skill pull Jira stories. Each of those commands references this file.
 
 ## Prerequisites
 
 1. The `atlassian` MCP server is installed at user scope:
    `claude mcp add --transport http --scope user atlassian https://mcp.atlassian.com/v1/mcp`
 2. The user has run `/mcp` once to complete the OAuth handshake.
-3. If the MCP is unauthenticated, stop and tell the user: **"Run `/mcp` to authenticate with Atlassian, then retry."** Do not attempt to proceed without the story.
+3. If the MCP is unauthenticated, behavior depends on the stage:
+   - **Write/plan stages** (`/m:refine`, `/m:plan`, `/m:implement`): stop and tell the user **"Run `/mcp` to authenticate with Atlassian, then retry."** — these stages must not proceed on guessed requirements.
+   - **Review stages** (`/m:review`, `/m:review-fanout`, the `m-cr` skill): do **not** stop. Note the missing Jira context in the output and continue the review (consistent with "Detection — review" step 5 and Failure modes below).
 
 ## Per-project config: `.m/jira.yml`
 
@@ -54,7 +51,9 @@ When `$ARGUMENTS` is a GitHub PR URL (already handled by `/m:review`), additiona
 2. Load `.m/jira.yml` if present and use its `branchPattern`; otherwise fall back to `([A-Z][A-Z0-9]+-\d+)`.
 3. Run the regex against the branch name and capture group 1 as the Jira key.
 4. If the PR body or `$ARGUMENTS` themselves also contain a Jira URL, prefer that over the branch-derived key.
-5. If no key is found, proceed with the review without Jira context — do **not** fail.
+5. For local changes without a PR, run the same regex against the current branch name
+   (`git rev-parse --abbrev-ref HEAD`).
+6. If no key is found, proceed with the review without Jira context — do **not** fail.
 
 ## Fetch (via atlassian MCP)
 

@@ -1,7 +1,7 @@
 ---
 description: Run the full /m delivery pipeline end-to-end (refine → plan → implement → review → iterate). Use when user wants a complete request delivered with quality gates, dual-engine review, and phase enforcement.
 argument-hint: [request]
-model: opus
+model: claude-opus-5
 effort: xhigh
 disable-model-invocation: true
 ---
@@ -105,15 +105,15 @@ Read these when available (reading context does NOT replace running refine/plan)
 3. **PLAN** — Before invoking, verify `.m/phase-refine-done` exists. Update `.m/DEVELOP_ACTIVE` to `current_phase: plan`. Invoke `Skill(skill="m:plan")` immediately. Do not prompt the user between refine and plan. Do not emit any plan content inline. Plan may BLOCK and spawn worktree-isolated `/m:research` when it encounters unknowns.
 4. Classify the side-effect tier: `read-only`, `write-local`, or `write-external`.
 5. **IMPLEMENT** — Verify `.m/phase-plan-done` exists. Update `.m/DEVELOP_ACTIVE` to `current_phase: implement`. Invoke `Skill(skill="m:implement")`. All code mutation happens inside this skill.
-6. **REVIEW** — Verify `.m/phase-implement-done` exists. Update `.m/DEVELOP_ACTIVE` to `current_phase: review`. Invoke the appropriate review skill (see Review Selection below) via the Skill tool. The Codex second engine runs in-stage on every review when `codex.enabled` is true (default).
-7. **ITERATE** — Verify `.m/phase-review-done` exists. Update `.m/DEVELOP_ACTIVE` to `current_phase: iterate`. Invoke `Skill(skill="m:iterate")`. Run until the **exit predicate** is satisfied (tests green + zero critical review findings + `.m/PROGRESS.md` updated) or the 3-loop safety cap is reached. `PASSED` requires the predicate, not just the cap.
-8. **EXIT PIPELINE** — Delete `.m/DEVELOP_ACTIVE`. Update `.m/TASKS.md`, `.m/PROGRESS.md`, and `.m/GAPS.md` with the outcome. Then append one outcome signal to `~/.claude/m-learning/signals/outcomes.jsonl` (create the file if absent) so `/m:learn` can derive adaptations — a single JSON line of the form `{"timestamp":"<ISO-8601>","type":"outcome","skill":"develop","request":"<one-line summary>","stages":"<e.g. refine→plan→implement→review-fanout→iterate>","verdict":"<PASSED|BLOCKED>","loops":<n>,"codex":"<agree|disagree|n/a>"}` (use the `timestamp` key to match the existing signal schema). Append with the file tools, not `echo`. This is passive telemetry and is separate from the opt-in `/m:feedback` signals.
+6. **REVIEW** — Verify `.m/phase-implement-done` exists. Update `.m/DEVELOP_ACTIVE` to `current_phase: review`. Invoke the appropriate review skill (see Review Selection below) via the Skill tool. The second engine runs in-stage on every review when `second_engine.provider` is `codex` or `kimi`.
+7. **ITERATE** — Verify `.m/phase-review-done` exists. Update `.m/DEVELOP_ACTIVE` to `current_phase: iterate`. Invoke `Skill(skill="m:iterate")`. Run until the **exit predicate** is satisfied (tests green + zero critical review findings + `.m/PROGRESS.md` updated + PRD Success Criteria satisfied when a `.m/PRD-*.md` exists) or the 3-loop safety cap is reached. `PASSED` requires the predicate, not just the cap.
+8. **EXIT PIPELINE** — Delete `.m/DEVELOP_ACTIVE`. Update `.m/TASKS.md`, `.m/PROGRESS.md`, and `.m/GAPS.md` with the outcome. Then append one outcome signal to `~/.claude/m-learning/signals/outcomes.jsonl` (create the file if absent) so `/m:learn` can derive adaptations — a single JSON line of the form `{"timestamp":"<ISO-8601>","type":"outcome","skill":"develop","request":"<one-line summary>","stages":"<e.g. refine→plan→implement→review-fanout→iterate>","verdict":"<PASSED|BLOCKED>","loops":<n>,"second_engine":"<codex:agree|codex:disagree|kimi:agree|kimi:disagree|n/a>"}` (use the `timestamp` key to match the existing signal schema). Append with the file tools, not `echo`. This is passive telemetry and is separate from the opt-in `/m:feedback` signals.
 
 Emit a stage transition line between each step:
 `[pipeline] {stage_name} → {next_stage_name} ({reason or key outcome})`
 
-For the review stage, the transition line must also state which review variant ran and whether Codex was invoked:
-`[pipeline] implement → review-fanout ({N} lenses) → iterate (codex second-opinion: agree)`
+For the review stage, the transition line must also state which review variant ran and whether a second engine was invoked:
+`[pipeline] implement → review-fanout ({N} lenses) → iterate (second opinion — codex: agree)`
 
 ## Review Selection
 
@@ -129,24 +129,24 @@ Pick the review command based on the change shape, not by default:
 
 Compliance and high-stakes triggers are read from the repo's `.m/pipeline.yml` (schema: `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`). If the file is absent, compliance is off and only the generic high-stakes categories in the next section apply.
 
-## Codex Second Engine (mandatory when enabled)
+## Second Engine (mandatory when a provider is selected)
 
-Codex participation across the pipeline (plan, research, review) is driven by the `codex:` section of the repo's `.m/pipeline.yml` (schema: `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`; defaults: `enabled: false` (opt-in), `fast_mode: false`, `gpt-5.5`/`xhigh`, `token_budget: 200000`, `on_budget_exceeded: fallback`).
+Second-engine participation across the pipeline (plan, research, review) is driven by the `second_engine:` section of the repo's `.m/pipeline.yml` (schema, provider defaults, and the legacy `codex:` fallback: `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`; `provider: none` is the default — Claude-only).
 
-When `codex.enabled` is true (opt-in), the review stage runs Codex automatically on **every** review — there is no `y/n` prompt and no high-stakes gating. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 12:
+When the provider is `codex` or `kimi`, the review stage runs the second engine automatically on **every** review — there is no `y/n` prompt and no high-stakes gating. Follow the active provider's protocol Section 12 (`${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` or `${CLAUDE_PLUGIN_ROOT}/references/kimi-protocol.md`):
 
-1. After the review stage produces its verdict, run the Metered Codex Invocation via native `codex exec review` with the flag matching the target (`--uncommitted`, `--base <branch>`, or `--commit <SHA>`).
-2. Present Claude's findings and Codex's findings **side-by-side**. Do not merge silently.
-3. **Disagreement rule:** if Claude says `APPROVED` but Codex flags criticals that survive re-verification, downgrade to `BLOCKED`. The more permissive verdict never wins by default.
-4. Codex is skipped (noted in metadata, never a pipeline failure) only when `codex.enabled: false`, the CLI is unavailable, or the per-run token budget is reached (per `on_budget_exceeded`).
+1. After the review stage produces its verdict, run the Metered Invocation against the change set (Codex: native `codex exec review` with `--uncommitted`, `--base <branch>`, or `--commit <SHA>`; Kimi: the prompt-constructed review over the same target).
+2. Present Claude's findings and the second engine's findings **side-by-side**. Do not merge silently. Second-engine findings are leads to confirm, never ground truth.
+3. **Disagreement rule:** if Claude says `APPROVED` but the second engine flags criticals that survive re-verification, downgrade to `BLOCKED`. The more permissive verdict never wins by default.
+4. The second engine is skipped (noted in metadata, never a pipeline failure) only when the provider is `none`, the CLI is unavailable, or the per-run token budget is reached (per `on_budget_exceeded`).
 
-The high-stakes categories below still escalate Claude's own pass depth, size tier, and compliance pass; they no longer gate Codex.
+The high-stakes categories below still escalate Claude's own pass depth, size tier, and compliance pass; they do not gate the second engine.
 
 ## Size Selection
 
 - **Small** (1–3 files, unambiguous scope): `refine → plan → implement → review → iterate`. Use `/m:review`.
 - **Medium** (4–10 files OR multi-layer): `refine → plan → implement → review → iterate`. Use `/m:review-fanout` instead of `/m:review` if the change crosses 2+ layers.
-- **Large or security-sensitive** (10+ files, migrations, auth/money, `high_stakes_paths` matches, API contracts): `refine → plan (with worktree research as needed) → implement → review-fanout (Codex second engine runs in-stage when `codex.enabled`) → iterate`.
+- **Large or security-sensitive** (10+ files, migrations, auth/money, `high_stakes_paths` matches, API contracts): `refine → plan (with worktree research as needed) → implement → review-fanout (second engine runs in-stage when a provider is selected) → iterate`.
 
 Every size runs the full pipeline: refine → plan → implement → review → iterate. No stage is optional. No skips. No "trivial enough" bypass. You must invoke `/m:refine` and `/m:plan` as Skill tool calls — not inline them, not summarize them, not skip them. Refine auto-chains to plan in all sizes. Plan handles research internally via BLOCK + worktree spawn when it encounters unknowns.
 
@@ -160,12 +160,11 @@ Inherit the tier from `/m:implement`. The tier gates how the pipeline proceeds:
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` at every stage. No shortcuts (no skipped phases, no inlined skill output, no `--no-verify` gates), full tool use (Read every cited file, run tests instead of predicting them, MCP for external state, parallel independent tool calls), and no compression of reasoning or verification work to save tokens. Caveman applies only to chat output, never to the work itself
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` at every stage. Before any user-facing question, resolve factual residues via Read, Grep, Glob, Bash, or MCP. Only `[USER-INTENT]` questions (scope, tradeoffs, business rules, preferences) reach the user. Every user-facing question is prefixed `[USER-INTENT]`.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start) at every stage: no shortcuts, full tool use, `[USER-INTENT]`-only questions
 - Treat critical or high-risk review and verification issues as gates, not soft suggestions
-- `/m:iterate` may only emit `PASSED` when its three-clause exit predicate is green. A loop-count exit is `BLOCKED`, not `PASSED`
-- Codex runs automatically on plan, research, and review when `codex.enabled` is true (opt-in); it is config-driven, not prompted. Enable per repo via `codex.enabled: true`
-- When Claude's judge and Codex disagree, the stricter verdict wins
+- `/m:iterate` may only emit `PASSED` when its four-clause exit predicate is green. A loop-count exit is `BLOCKED`, not `PASSED`
+- The second engine runs automatically on plan, research, and review when `second_engine.provider` is `codex` or `kimi`; it is config-driven, not prompted. The default is `none` (Claude-only)
+- When Claude's judge and the second engine disagree, the stricter verdict wins
 - Do not auto-create worktrees
 - Do not redesign UI unless the user explicitly asks
 - Keep CURRENT issues separate from PRE-EXISTING gaps
@@ -188,5 +187,6 @@ Example: `refine → plan → implement → review-fanout (7 lenses) → codex s
 - Tests green: yes / no — {command and exit code}
 - Zero critical review findings: yes / no / n/a
 - PROGRESS.md updated: yes / no
+- PRD Success Criteria satisfied: yes / no / n/a
 ### Remaining Blockers
 ### Next Step

@@ -1,6 +1,6 @@
 ---
 description: Show the /m:* workflow reference — pipeline order, stage purposes, side-effect tiers, when to use each command. Use when user asks "what does /m do", "list /m commands", "/m help".
-model: haiku
+model: claude-haiku-4-5
 effort: low
 allowed-tools: Read
 ---
@@ -10,10 +10,10 @@ Show a concise reference for the `/m:*` workflow.
 
 State these rules first:
 
-- The pipeline ships as the `m` plugin: commands live under the plugin's `commands/` directory and are invoked colon-namespaced (`/m:refine`, `/m:plan`, …).
-- The expert modes live as skills under the plugin's `skills/` directory and split into two invocation styles:
+- In Claude Code, `/m:*` should live as slash commands under `.claude/commands/m/`. The pipeline commands remain colon-namespaced slash commands (`/m:refine`, `/m:plan`, …).
+- The expert modes live as skills under `.claude/skills/m-*/` and split into two invocation styles:
   - **Manual security skills** — `/m:cr` and `/m:security` carry `disable-model-invocation: true`, so they are user-invoked slash skills (you type `/m:cr` / `/m:security`); Claude does not auto-run them.
-  - **Path-activated expert skills** — `m:go`, `m:react`, and `m:biz` carry `user-invocable: false` plus a `paths:` glob list, so they auto-load when Claude edits matching files (`**/*.go`, `go.mod`, `go.work`; `**/*.tsx`, `**/*.jsx`, tailwind config, `package.json`; `.business/**`, `**/BUSINESS.md`). They are hidden from the `/` menu and are not typed as slash commands.
+  - **Path-activated expert skills** — `m:go`, `m:react`, and `m:biz` carry `user-invocable: false` plus a `paths:` glob list, so they auto-load when Claude edits matching files (`**/*.go`, `go.mod`, `go.work`; `**/*.tsx`, `**/*.jsx`, tailwind config; `.business/**`, `**/BUSINESS.md`). They are hidden from the `/` menu and are not typed as slash commands.
 - Do not recommend converting the whole `/m:*` pack into Claude skills unless the user explicitly wants a separate reusable plugin artifact.
 
 Then print:
@@ -29,11 +29,13 @@ Then print:
 | `/m:plan` | Produce an implementation plan grounded in repo patterns | The change is medium or large |
 | `/m:implement` | Execute a plan or direct request | The scope is clear and coding should begin |
 | `/m:review` | Review code or a plan with findings first | You want a gate before merge or implementation |
+| `/m:review-fanout` | Parallel-lens review (blind specialists + judge) | The diff is 4+ files or crosses stacks/layers |
 | `/m:iterate` | Verify, fix, and re-check | After implementation or review fixes |
 | `/m:develop` | Run the end-to-end workflow | You want Claude to orchestrate the whole delivery |
 | `/m:analyze` | Deep analysis with optional cached outputs | Architecture, security, flows, docs, proposals |
 | `/m:feedback` | Store explicit workflow preferences | The user wants persistent Claude-side learning |
 | `/m:learn` | Generate or inspect learned adaptations | The user wants to analyze stored signals |
+| `/m:setup` | Diagnose and configure the second engine (codex, kimi, or none) | Checking or changing the second-engine provider, CLI, auth, model, effort |
 
 ### Expert Modes (installed skills)
 
@@ -45,7 +47,7 @@ User-invoked (type the slash command):
 Auto-activated (load when Claude edits matching files; not slash commands):
 
 - `m:go` — `**/*.go`, `go.mod`, `go.work`
-- `m:react` — `**/*.tsx`, `**/*.jsx`, tailwind config, `package.json`
+- `m:react` — `**/*.tsx`, `**/*.jsx`, tailwind config
 - `m:biz` — `.business/**`, `**/BUSINESS.md`
 
 ### Security review routing
@@ -84,7 +86,7 @@ Four security surfaces exist; pick by scope:
 - Repos that already have `.m/` state: prefer it and use `PROJECT_INDEX.*` only as supplementary context
 
 ### Defaults
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` to every `/m:*` invocation. No shortcuts (skipped phases, paraphrased requirements, `--no-verify` gates), full tool use (Read every cited file, run tests instead of predicting them, prefer `context7` and `atlassian` MCPs over recall, parallel independent calls), no compression of reasoning or verification work to save tokens. Caveman is an output filter only.
+- `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start) apply to every `/m:*` invocation.
 - Do not auto-create worktrees
 - Do not redesign UI unless the user explicitly asks
 - Do not create `.m/PLAN.md` unless the repo already uses it or the user explicitly asks to persist a plan

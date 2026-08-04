@@ -1,8 +1,9 @@
 ---
-description: Create an actionable implementation plan grounded in repo patterns and user-confirmed decisions. Uses dual-engine (Claude + Codex) sanity passes and a grill loop until zero gaps. Use after /m:refine or when starting a non-trivial change.
+description: Create an actionable implementation plan grounded in repo patterns and user-confirmed decisions. Uses second-engine (Codex or Kimi, config-driven) sanity passes and a grill loop until zero gaps. Use after /m:refine or when starting a non-trivial change.
 argument-hint: [refined-request]
-model: opus
+model: claude-opus-5
 effort: xhigh
+allowed-tools: Read, Grep, Glob, Bash, Agent, TaskCreate
 ---
 # /m:plan - Master Planner
 
@@ -10,7 +11,7 @@ Create a detailed, actionable implementation plan through rigorous gap analysis 
 
 ## Core Constraint: Trace Every Plan Element to a User Statement
 
-**Every plan element traces to an explicit user statement from this session.** This is the anchor for the rest of the file.
+**Every plan element traces to an explicit user statement from this session, or to the user-authored refined specification supplied as this plan's input.** This is the anchor for the rest of the file.
 
 - Architecture preference unstated → BLOCK and ask.
 - Error handling strategy unspecified → BLOCK and ask.
@@ -25,13 +26,7 @@ Refined prompt or task description: `$ARGUMENTS`
 
 ## Jira Context (run before Phase 1)
 
-If `$ARGUMENTS` contains a Jira reference (full `*.atlassian.net/browse/KEY` URL, or a bare `KEY` that matches `.m/jira.yml` `projectKey`), fetch the story via the `atlassian` MCP server **before** codebase analysis. Follow the shared rules in `${CLAUDE_PLUGIN_ROOT}/references/jira-context.md`.
-
-- Load `.m/jira.yml` if present for `site`, `projectKey`, `branchPattern`.
-- Use `mcp__atlassian__*` tools to fetch: summary, description, status, acceptance criteria, recent comments.
-- If the `atlassian` MCP is not installed or not authenticated, stop and instruct the user to run `/mcp` (or add it with `claude mcp add --transport http --scope user atlassian https://mcp.atlassian.com/v1/mcp`).
-- Prepend a **Jira Context** block (key, title, link, status, 2–4 line summary) to the final plan.
-- Ground acceptance criteria in the Jira acceptance criteria. If the story is thin, call that out under **Risks or Open Items**.
+If `$ARGUMENTS` contains a Jira reference, resolve and fetch it per `${CLAUDE_PLUGIN_ROOT}/references/jira-context.md` **before** codebase analysis. Ground acceptance criteria in the Jira acceptance criteria; if the story is thin, call that out under **Risks or Open Items**.
 
 ## Context Sources
 
@@ -67,29 +62,23 @@ read `plan`, stop and tell the user — the pipeline is out of sync.
 
 ### Phase 1: Codebase Analysis
 
-#### Pre-flight: Codex Dual-Engine Check
+#### Pre-flight: Second-Engine Check
 
-Before any observation work, resolve the `codex:` config (Section 1) and run the pre-flight check defined in `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 2. When `codex.enabled` is true (opt-in), Codex Pass-1 and Pass-2 are **mandatory** — there is no per-pass permission prompt. The pre-flight sets `CODEX_DISABLED=true` only when Codex is disabled in `.m/pipeline.yml`, the CLI is unavailable, or the per-run token budget is reached; in those cases the passes are skipped and the plan proceeds Claude-only.
+Before any observation work, resolve `second_engine` from `.m/pipeline.yml` (schema, provider defaults, and legacy `codex:` fallback in `${CLAUDE_PLUGIN_ROOT}/references/pipeline-context.md`) and run the pre-flight check in the active provider's protocol Section 2 — `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` for `codex`, `${CLAUDE_PLUGIN_ROOT}/references/kimi-protocol.md` for `kimi`. When a provider is selected, Pass-1 and Pass-2 are **mandatory** — there is no per-pass permission prompt. The passes are skipped (the plan proceeds Claude-only) only when the provider is `none`, the CLI is unavailable, or the per-run token budget is reached.
 
-The Metered Codex Invocation (Section 6), Fast-Mode flags (Section 3), Operating-Rules Preamble (Section 4), Secret Redaction Rule (Section 5), and Token Metering (Section 7) all apply to every Pass-1 and Pass-2 handoff. Do not duplicate those rules here — read the reference and apply them verbatim.
+The Metered Invocation (Section 6), Operating-Rules Preamble (Section 4), Secret Redaction Rule (Section 5), and Token Metering (Section 7) of the active provider's protocol apply to every Pass-1 and Pass-2 handoff. Do not duplicate those rules here — read the reference and apply them verbatim.
 
 #### Observation Gathering
 
 Explore the codebase — read the request, map relevant code paths, classify repo health, identify existing patterns. When the codebase map would span more than three searches, spawn `Explore` subagent(s) (`model: haiku`) for the breadth sweep; keep the synthesis, grilling, and the worktree `/m:research` spawn on the orchestrator's `opus`.
 
-Present all findings as `[OBSERVATION]`:
-
-```
-[OBSERVATION] Repository uses repository pattern for DB access (see pkg/repository/)
-[OBSERVATION] Auth middleware at pkg/middleware/auth.go uses JWT with tenant isolation
-[OBSERVATION] No existing test helpers for integration tests
-```
+Present each finding as a one-line `[OBSERVATION]` entry that names the concrete file or path it came from.
 
 Observations are input for the grill. They do NOT become plan elements without user confirmation.
 
-#### Pass-1: Codex Architecture Sanity (blocking)
+#### Pass-1: Second-Engine Architecture Sanity (blocking)
 
-Runs after observation gathering completes, before Phase 2 begins. Phase 2 must not start until Pass-1 completes or is skipped. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 8 for the full protocol — payload build, redaction, metered invocation, merge of `[OBSERVATION — codex]` entries.
+Runs after observation gathering completes, before Phase 2 begins. Phase 2 must not start until Pass-1 completes or is skipped. Follow the active provider's protocol Section 8 for the full protocol — payload build, redaction, metered invocation, merge of `[OBSERVATION — codex]` / `[OBSERVATION — kimi]` entries.
 
 ### Phase 2: Grill-Based Plan Construction
 
@@ -116,6 +105,8 @@ Q2. {next gap}
 
 4. Wait for user answers
 5. If answers create new gaps → new grill round. Loop until zero gaps. **Soft round cap:** there is no hard limit, but if the grill reaches round 4 and answers are still spawning fresh gaps, pause and surface a convergence check — show the user the still-open gaps and ask whether to keep grilling or to move the remainder to DEFERRED (under Risks) and proceed. This guards against a gap-spawns-gap loop without forcing premature closure; the user, not a counter, decides when to stop.
+
+**Complete-input fast path.** When the refined spec settles every plan area and no genuine gap survives observation gathering, do not manufacture gaps: confirm the collapsed plan in one round, and when no requester round-trip is possible, record each spec-settled decision as `[CONFIRMED-BY-SPEC]` with its spec source and emit the plan — the spec is the user's statement.
 6. When user confirms a section:
    - Mark items as `[CONFIRMED]`
    - Create a draft task via TaskCreate: high-level title + checklist sub-items in description
@@ -125,17 +116,14 @@ Q2. {next gap}
 - `[OBSERVATION]` — codebase finding, not a decision
 - `[PROPOSED]` — Claude's suggestion, needs user confirmation before becoming plan
 - `[CONFIRMED]` — user confirmed, now a plan element. Include which grill round confirmed it.
+- `[CONFIRMED-BY-SPEC]` — settled by the user-authored refined spec when no requester round-trip is possible, now a plan element. Include the spec section it traces to.
 
 **Anti-assumption enforcement:**
 - When presenting a `[PROPOSED]` item, always include your reasoning AND the strongest counter-argument
 - If you catch yourself writing a plan element without a `[CONFIRMED]` trace, stop and convert it to a gap question
 - "The codebase already does X" is an observation, not a confirmation. The user must still confirm X applies to this change.
 
-**Research trigger:** If you encounter an unknown requiring external research (unfamiliar library, protocol, integration point), BLOCK and spawn isolated research:
-
-```
-BLOCKED — need research on [topic]. Spawning isolated worktree research.
-```
+**Research trigger:** If you encounter an unknown requiring external research (unfamiliar library, protocol, integration point), BLOCK — announce `BLOCKED — need research on <topic>`, state that isolated worktree research is being spawned, and spawn it.
 
 Spawn via `Agent(isolation: "worktree")` with ONLY the research question and relevant file paths. Do NOT include the refined spec, plan-so-far, or any conversation context in the agent prompt. Present research findings to user. User decides what to incorporate — research is advisory, the plan (user's plan) wins.
 
@@ -156,9 +144,9 @@ If all checks pass, run Pass-2 (below) before emitting the plan document.
 
 **Task splitting rule:** Before finalizing, check every task against the zero-decisions constraint. If a task requires the implementer to make any design decision, split it or escalate the missing decision as a new gap.
 
-#### Pass-2: Codex Final Plan Review (blocking)
+#### Pass-2: Second-Engine Final Plan Review (blocking)
 
-Runs after the three exit-gate checks pass, before the plan document is emitted. The plan is not emitted until Pass-2 completes or is skipped. Follow `${CLAUDE_PLUGIN_ROOT}/references/codex-protocol.md` Section 9 for the full Pass-2 protocol, Section 10 for the Disagreement Menu, Section 7 for token metering and budget enforcement, and Section 13 for the handoff cleanup that runs on every terminal path.
+Runs after the three exit-gate checks pass, before the plan document is emitted. The plan is not emitted until Pass-2 completes or is skipped. Follow the active provider's protocol Section 9 for the full Pass-2 protocol, Section 10 for the Disagreement Menu, Section 7 for token metering and budget enforcement, and Section 13 for the handoff cleanup that runs on every terminal path.
 
 ## Output
 
@@ -190,8 +178,7 @@ All other plan content (file changes, implementation steps, test strategy, error
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire plan run. No shortcuts: do not skip the grill loop, do not skip the Codex Pass-1/Pass-2 dual-engine checks when `codex.enabled` is true (they are mandatory, not gated — see `codex-protocol.md`), do not finalize a plan with any unconfirmed `[PROPOSED]` element. Use tools fully: Read every file cited in `[OBSERVATION]` entries, fetch Jira via the `atlassian` MCP rather than improvising acceptance criteria, prefer `context7` for library questions. Do not compress reasoning to save tokens — the grill is the value producer, not friction to optimize away.
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` to every question the plan emits to the user. Resolve factual questions via Read, Grep, Glob, Bash, or MCP before asking. Only `[USER-INTENT]` residues (scope tradeoffs, business rules, preferences between equally valid options) reach the user. Prefix every user-facing question with `[USER-INTENT]`.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). The grill loop and the second-engine Pass-1/Pass-2 checks are mandatory, not friction to optimize away.
 
 ## Self-Check
 
@@ -202,6 +189,6 @@ Before finishing, verify:
 - shared utilities were considered
 - restricted files, migrations, contracts, or generated code are flagged
 - the implementation order encoded in tasks is dependency-safe
-- every `[CONFIRMED]` item traces to an explicit user statement
+- every `[CONFIRMED]` item traces to an explicit user statement, and every `[CONFIRMED-BY-SPEC]` item cites the spec section that settles it
 
 End by asking whether to proceed to `/m:implement` or adjust the plan.
