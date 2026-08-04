@@ -90,4 +90,4 @@ The 3–5 clarifying-question floor in `m-pipeline/commands/m/refine.md` Phase 2
 
 ## Enforcement
 
-This file is loaded at every session start through `${CLAUDE_PLUGIN_ROOT}/rules/`. It applies to every `/m:*` skill, every spawned subagent, every standalone Claude Code conversation, and every plan, review, iterate, and implement run regardless of size or "feel." It is a floor, not a preference. The pre-flight check runs before every question to the user, every time.
+Every `/m:*` command loads this file from `${CLAUDE_PLUGIN_ROOT}/rules/` through its Rules section; read it in full before acting. It applies to every `/m:*` skill, every spawned subagent, every standalone Claude Code conversation, and every plan, review, iterate, and implement run regardless of size or "feel." It is a floor, not a preference. The pre-flight check runs before every question to the user, every time.

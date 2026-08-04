@@ -70,6 +70,10 @@ Run this once before the first Kimi pass of a command.
    `[kimi] no user-level deny rules found — kimi passes skipped (Claude-only). Run /m:setup to add them.`,
    set `KIMI_DISABLED=true`, and proceed Claude-only. Do not write the rules here; only
    `/m:setup` may, with the user's per-write confirmation.
+   These three rules bound writes, edits, and shell only: every other tool the CLI
+   auto-approves in `-p` mode (including its network-fetch tool) stays available to Kimi.
+   Treat every payload handed to Kimi as readable and transmittable by it, and keep the
+   Section 5 deny-list strict.
 
 A genuine CLI failure is surfaced loudly but never hard-blocks the run — the command
 degrades to Claude-only, the same terminal behavior as the `on_budget_exceeded: fallback`
@@ -116,8 +120,10 @@ handoff write (Pass-1, Pass-2, research, review).
 
 Scope of handoff writes is plan/research/review prose only — decisions, file paths,
 acceptance criteria, rationale. Never include raw source code, `.env` contents, or log
-excerpts that may embed secrets. (Kimi reads the repository directly through its own tools
-under Section 6; the redaction rule governs only the prose payloads Claude authors.)
+excerpts that may embed secrets. (Under Section 6.1 Kimi's working directory is the
+scratch directory: it sees only what Claude writes there. The redaction rule therefore
+governs every payload Claude authors — including `.m/handoff/kimi-scratch/changes.diff`,
+whose context lines must never carry values matching the deny-list.)
 
 ## 6. Metered Kimi Invocation (used by every pass)
 

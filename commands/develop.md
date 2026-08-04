@@ -160,7 +160,7 @@ Inherit the tier from `/m:implement`. The tier gates how the pipeline proceeds:
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start) at every stage: no shortcuts, full tool use, `[USER-INTENT]`-only questions
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding) at every stage: no shortcuts, full tool use, `[USER-INTENT]`-only questions
 - Treat critical or high-risk review and verification issues as gates, not soft suggestions
 - `/m:iterate` may only emit `PASSED` when its four-clause exit predicate is green. A loop-count exit is `BLOCKED`, not `PASSED`
 - The second engine runs automatically on plan, research, and review when `second_engine.provider` is `codex` or `kimi`; it is config-driven, not prompted. The default is `none` (Claude-only)

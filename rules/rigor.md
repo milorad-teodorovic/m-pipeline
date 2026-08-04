@@ -83,7 +83,7 @@ If any of those four answers is "yes" and you are about to proceed anyway, stop.
 
 ## Enforcement
 
-This file is loaded at every session start through `${CLAUDE_PLUGIN_ROOT}/rules/`. It applies to:
+Every `/m:*` command loads this file from `${CLAUDE_PLUGIN_ROOT}/rules/` through its Rules section; read it in full before acting on any stage. It applies to:
 
 - every `/m:*` skill and command,
 - every spawned subagent,

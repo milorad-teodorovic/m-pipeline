@@ -86,7 +86,7 @@ Four security surfaces exist; pick by scope:
 - Repos that already have `.m/` state: prefer it and use `PROJECT_INDEX.*` only as supplementary context
 
 ### Defaults
-- `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start) apply to every `/m:*` invocation.
+- `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding) apply to every `/m:*` invocation.
 - Do not auto-create worktrees
 - Do not redesign UI unless the user explicitly asks
 - Do not create `.m/PLAN.md` unless the repo already uses it or the user explicitly asks to persist a plan

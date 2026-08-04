@@ -1,10 +1,10 @@
 # PR Posting Suppression Gates — shared by /m:review and /m:review-fanout
 
-The suppression-gate script below runs during the PR Posting Gate step of both review commands, after the detection and PR-target checks in the command body have passed. Run the gates in order; any positive match sets `SKIP=1` with a printed reason, and a set `SKIP=1` means: do not post, print the gate reason in chat, and continue to the chat Output block as today.
+The suppression-gate script below runs during the PR Posting Gate step of both review commands, after the detection and PR-target checks in the command body have passed. Run the gates in order; any positive match sets `SKIP=1` with a printed reason, and a set `SKIP=1` means: do not post, print the gate reason in chat, and continue to the chat Output block as today. Pass the resolved PR URL as the script's first positional argument; never substitute the URL into the script text.
 
 ```bash
 # Required preconditions
-PR_URL="$RESOLVED_PR_URL"                              # already resolved from $ARGUMENTS
+PR_URL="$1"                                            # resolved PR URL, passed as the first positional argument
 gh auth status >/dev/null 2>&1 || { echo "[gate] gh not authenticated — skip post"; SKIP=1; }
 
 # Gate (b): author check

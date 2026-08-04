@@ -186,7 +186,7 @@ m-pipeline/
 │   └── marketplace.json
 ├── commands/          # 15 slash commands (plugin name `m` → invoked as /m:refine, /m:plan, …)
 ├── skills/            # 5 expert-mode skills (/m:go, /m:react, /m:biz, /m:cr, /m:security)
-├── references/        # codex-protocol · kimi-protocol · jira-context · lens-templates · pipeline-context · checklists
+├── references/        # codex-protocol · kimi-protocol · jira-context · lens-templates · pipeline-context · review-post-gate · checklists
 ├── rules/             # rigor · self-serve · verification · code-quality · testing  (referenced via ${CLAUDE_PLUGIN_ROOT})
 ├── hooks/
 │   ├── hooks.json

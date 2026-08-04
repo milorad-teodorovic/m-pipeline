@@ -3,7 +3,7 @@ description: Diagnose, then interactively configure (guided wizard — provider 
 argument-hint: "[--check]   (read-only diagnosis; omit to run the guided config wizard)"
 model: claude-sonnet-5
 effort: medium
-allowed-tools: Read, Grep, Glob, Edit, Write, Bash(codex --version), Bash(codex features list:*), Bash(kimi --version), Bash(kimi doctor), Bash(grep:*), Bash(cp:*), Bash(mkdir:*)
+allowed-tools: Read, Grep, Glob, Edit, Write, Bash(codex --version), Bash(codex features list:*), Bash(kimi --version), Bash(kimi doctor), Bash(mkdir:*)
 ---
 # /m:setup - Second-Engine Setup Doctor
 

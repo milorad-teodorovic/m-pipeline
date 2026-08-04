@@ -70,7 +70,7 @@ This classification drives how aggressively to proceed vs pause for confirmation
 
 ## Implementation Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start): run the test runs the plan calls for, stay on `[CONFIRMED]` plan elements, escalate only genuine plan defects.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding): run the test runs the plan calls for, stay on `[CONFIRMED]` plan elements, escalate only genuine plan defects.
 - Match established project patterns exactly
 - Reuse shared types, components, utilities, and services before creating new ones
 - Keep the change to the minimum that satisfies the request. Do not add features, refactor adjacent code, or make "improvements" beyond what was asked — a bug fix does not need the surrounding code cleaned up. The right amount of complexity is the minimum needed for the current task; do not introduce abstractions, configuration knobs, or defensive layers the request did not call for. Validate input only at system boundaries such as user input and external API responses, not at every internal call site.

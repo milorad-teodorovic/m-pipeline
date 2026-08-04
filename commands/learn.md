@@ -49,7 +49,7 @@ Keep evidence summaries short and remove contradicted adaptations.
 
 ## Application Rules
 
-0. Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` (loaded at session start). Read every signal file before scoring; never promote a LOW signal to fill a slot.
+0. Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` (read in full before proceeding). Read every signal file before scoring; never promote a LOW signal to fill a slot.
 1. HIGH: safe to apply silently
 2. MEDIUM: apply, but mention when relevant
 3. LOW: track only

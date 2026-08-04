@@ -3,7 +3,7 @@ description: Parallel-lens code review — blind specialist subagents (security,
 argument-hint: [target]
 model: claude-opus-5
 effort: xhigh
-allowed-tools: Read, Grep, Glob, Write, Bash(git:*), Bash(gh:*), Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(mkdir:*), Bash(python3:*), Bash(rm:*), Agent
+allowed-tools: Read, Grep, Glob, Write, Bash(git:*), Bash(gh:*), Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(mkdir:*), Bash(rm -f .m/handoff/:*), Bash(rm -rf .m/handoff/:*), Agent
 ---
 # /m:review-fanout - Parallel-Lens Review
 
@@ -228,7 +228,7 @@ Use the templates in `${CLAUDE_PLUGIN_ROOT}/references/lens-templates.md` as the
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start) to every lens and the judge. Fanout is breadth-first by design — never spawn lenses serially, never let the more permissive verdict win silently.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding) to every lens and the judge. Fanout is breadth-first by design — never spawn lenses serially, never let the more permissive verdict win silently.
 - Lenses run in **parallel and blind**. Breaking either property breaks the pattern.
 - Every lens applies `${CLAUDE_PLUGIN_ROOT}/rules/verification.md`. No exceptions.
 - Judge re-verifies every critical and high finding. No exceptions.

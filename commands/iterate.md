@@ -113,7 +113,7 @@ Use `PASSED` or `BLOCKED` for the final verdict.
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). `PASSED` requires the exit predicate with quoted commands and exit codes — never the loop cap, never an un-re-run fix.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). `PASSED` requires the exit predicate with quoted commands and exit codes — never the loop cap, never an un-re-run fix.
 - Re-run the relevant checks after every fix loop
 - An intermittently failing test is characterized before it is judged: re-run it several times, report the observed pass/fail pattern as an open item, and never let a single green re-run count as conclusive
 - Keep CURRENT issues separate from PRE-EXISTING gaps

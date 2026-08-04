@@ -95,7 +95,7 @@ Produce or refresh an index with:
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). A thin index breaks every downstream `/m:*` stage that depends on it.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). A thin index breaks every downstream `/m:*` stage that depends on it.
 - Preserve user-authored content and history
 - Update surgically instead of rewriting files wholesale
 - Call out conflicting or stale source documents when you find them

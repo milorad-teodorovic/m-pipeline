@@ -3,7 +3,7 @@ description: Focused, isolated research using internet sources, official docs, a
 argument-hint: [topic-or-question]
 model: claude-opus-5
 effort: xhigh
-allowed-tools: Read, Grep, Glob, WebSearch, WebFetch, Agent, Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(git:*), Bash(rm:*), Bash(mkdir:*), Bash(python3:*)
+allowed-tools: Read, Grep, Glob, WebSearch, WebFetch, Agent, Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(git:*), Bash(mkdir:*), Bash(rm -f .m/handoff/:*), Bash(rm -rf .m/handoff/:*)
 ---
 # /m:research - Focused Research Workflow
 
@@ -74,7 +74,7 @@ The research agent does NOT write to `.m/RESEARCH.md`. The parent session writes
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). Primary sources over recall; the parent session relies on the full finding set, not a pre-summarised verdict.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). Primary sources over recall; the parent session relies on the full finding set, not a pre-summarised verdict.
 - Include concrete dates, versions, or protocol names when they matter
 - Make uncertainty explicit
 - If the repo is incomplete or extracted, distinguish what was observed locally from what had to be inferred

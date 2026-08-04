@@ -107,7 +107,7 @@ If the user did not specify an output format, ask what they want next after pres
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). Do not reuse cached analysis when the underlying code has changed.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). Do not reuse cached analysis when the underlying code has changed.
 - Prefer primary sources and local code over generic summaries
 - Make uncertainty explicit
 - If the repo is incomplete, extracted, vendored, or not buildable from source, say that explicitly and lower confidence where appropriate

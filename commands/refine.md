@@ -100,7 +100,7 @@ Every question that reaches the user MUST be prefixed `[USER-INTENT]` in the men
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). The grill is the value producer — do not collapse it.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). The grill is the value producer — do not collapse it.
 - Prefer concrete acceptance criteria over generic summaries
 - If UI work is involved, preserve the existing design system unless the user explicitly asks for a redesign
 - If repo health limits confidence, say so in Assumptions

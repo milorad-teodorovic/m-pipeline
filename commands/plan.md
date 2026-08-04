@@ -3,7 +3,7 @@ description: Create an actionable implementation plan grounded in repo patterns 
 argument-hint: [refined-request]
 model: claude-opus-5
 effort: xhigh
-allowed-tools: Read, Grep, Glob, Bash, Agent, TaskCreate
+allowed-tools: Read, Grep, Glob, Agent, TaskCreate, Bash(git:*), Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(mkdir:*), Bash(rm -f .m/handoff/:*), Bash(rm -rf .m/handoff/:*)
 ---
 # /m:plan - Master Planner
 
@@ -49,7 +49,7 @@ Always prefer established repo patterns over invention — but only when the use
 This skill participates in the `/m:develop` phase gate. Follow this
 protocol on every invocation, including standalone runs:
 
-1. On entry, before any codebase analysis or Codex pre-flight: run
+1. On entry, before any codebase analysis or second-engine pre-flight: run
    `mkdir -p .m && touch .m/phase-plan-started` via Bash.
 2. On successful completion (plan emitted, exit gate passed): run
    `touch .m/phase-plan-done`.
@@ -178,7 +178,7 @@ All other plan content (file changes, implementation steps, test strategy, error
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). The grill loop and the second-engine Pass-1/Pass-2 checks are mandatory, not friction to optimize away.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). The grill loop and the second-engine Pass-1/Pass-2 checks are mandatory, not friction to optimize away.
 
 ## Self-Check
 

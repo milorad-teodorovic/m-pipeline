@@ -99,7 +99,7 @@ Never remove worktrees automatically.
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). Use file-system tools, not Bash, when updating `.m/` tracking files.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). Use file-system tools, not Bash, when updating `.m/` tracking files.
 - Preserve existing task and gap history
 - Prefer updating existing entries over duplicating them
 - If repo state is inconsistent, call it out instead of guessing

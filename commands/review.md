@@ -3,7 +3,7 @@ description: Multi-pass sequential code review with unified, evidence-backed fin
 argument-hint: [target]
 model: claude-opus-5
 effort: xhigh
-allowed-tools: Read, Grep, Glob, Write, Bash(git:*), Bash(gh:*), Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(mkdir:*), Bash(python3:*), Bash(rm:*), Agent
+allowed-tools: Read, Grep, Glob, Write, Bash(git:*), Bash(gh:*), Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(mkdir:*), Bash(rm -f .m/handoff/:*), Bash(rm -rf .m/handoff/:*), Agent
 ---
 # /m:review - Multi-Pass Review Workflow
 
@@ -243,7 +243,7 @@ Return one of:
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (loaded at session start). Never skip a tier-required pass; never let the more permissive verdict win when the second engine disagrees.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). Never skip a tier-required pass; never let the more permissive verdict win when the second engine disagrees.
 - Prefer zero findings over weak findings
 - Every finding MUST include file:line proof and a verified code snippet — no exceptions
 - Every finding goes through the verification pass — no shortcuts
