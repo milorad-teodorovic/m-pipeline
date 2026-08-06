@@ -34,6 +34,7 @@ Follow the same Jira resolution flow as `/m:review` (see `${CLAUDE_PLUGIN_ROOT}/
 - Repo `AGENTS.md` / `CLAUDE.md`
 - `${CLAUDE_PLUGIN_ROOT}/rules/verification.md` — all lenses and the judge must apply these rules
 - The actual changed files and directly impacted adjacent code
+- `~/.claude/m-learning/ADAPTATIONS.md` (if present) — apply the HIGH and MEDIUM `review-fanout` adaptations and the `review_strictness` preference recorded there; proceed normally if it does not exist. Current-session instructions always override a learned adaptation.
 
 ## Execution
 

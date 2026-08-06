@@ -38,7 +38,7 @@ Read these first when available:
 - `.m/RESEARCH.md`
 - `PROJECT_INDEX.md`
 - repo-local guidance such as `AGENTS.md` and `CLAUDE.md`
-- `~/.claude/m-learning/ADAPTATIONS.md` (if present) — apply the HIGH and MEDIUM `plan` adaptations and pipeline defaults recorded there; proceed normally if it does not exist. Current-session instructions always override a learned adaptation.
+- `~/.claude/m-learning/ADAPTATIONS.md` (if present) — apply the HIGH and MEDIUM `plan` adaptations, pipeline defaults, and the `plan_depth` preference recorded there; proceed normally if it does not exist. Current-session instructions always override a learned adaptation.
 
 Always prefer established repo patterns over invention — but only when the user confirms the pattern applies.
 

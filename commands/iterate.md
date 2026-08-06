@@ -21,6 +21,7 @@ If no explicit target is given, verify the most recent implementation in context
 - `.m/PROGRESS.md`
 - `.m/GAPS.md`
 - repo manifests and existing test scripts
+- `~/.claude/m-learning/ADAPTATIONS.md` (if present) — apply the HIGH and MEDIUM `iterate` adaptations and the `test_approach` preference recorded there; proceed normally if it does not exist. Current-session instructions always override a learned adaptation.
 
 ## Workflow
 

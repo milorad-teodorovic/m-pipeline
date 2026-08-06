@@ -28,6 +28,7 @@ Read these first when available:
 - `.m/GAPS.md`
 - `PROJECT_INDEX.md`
 - repo-local guidance such as `AGENTS.md` and `CLAUDE.md`
+- `~/.claude/m-learning/ADAPTATIONS.md` (if present) — apply the HIGH and MEDIUM `implement` adaptations and the `test_approach` preference recorded there; proceed normally if it does not exist. Current-session instructions always override a learned adaptation.
 
 ## Workflow
 

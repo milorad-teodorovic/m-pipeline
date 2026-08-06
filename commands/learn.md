@@ -48,6 +48,37 @@ Optional subcommand: `$ARGUMENTS`
 
 Keep evidence summaries short and remove contradicted adaptations.
 
+### Scored-signal count
+
+The header line of `ADAPTATIONS.md` records the generation date and the
+number of signal records scored in that run — the count of non-empty lines
+across every `.jsonl` file in `~/.claude/m-learning/signals/`:
+
+```
+Generated: <date>. Signals scored: <N>. <one-line summary>
+```
+
+`Signals scored: <N>` is a fixed literal prefix followed by an integer so a
+later run can parse it back out. `/m:develop` step 8 reads that number to
+decide whether enough new evidence has accumulated since the last scoring
+run to be worth another one. Without it the trigger has no reference point
+and never fires, so the count is not decorative.
+
+The count moves only on a run that actually rewrites `ADAPTATIONS.md`. Two
+paths therefore leave it untouched, and both are deliberate:
+
+- `dry-run`, which writes nothing. Updating the count there would silently
+  move the reference point forward and suppress the next real run.
+- Step 2, where there is no usable data and the run stops. Nothing was
+  scored, so nothing should be recorded as scored.
+
+The second path means the trigger in `/m:develop` step 8 will re-fire on the
+next run, since the reference point has not moved. That is correct — a
+corpus that is unusable today may be usable once more records land — but it
+does mean a persistently unusable corpus produces a scoring attempt on every
+pipeline run. Say so in the chat output when stopping at step 2, so the
+repetition is visible rather than mysterious.
+
 ## Event Types
 
 Step 1 already reads every `.jsonl` file in the signals directory, so these

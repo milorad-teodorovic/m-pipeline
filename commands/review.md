@@ -29,6 +29,7 @@ Resolve a Jira issue for this review when possible, per `${CLAUDE_PLUGIN_ROOT}/r
 - `PROJECT_INDEX.md`
 - repo-local guidance such as `AGENTS.md` and `CLAUDE.md`
 - the actual changed files and directly impacted adjacent code
+- `~/.claude/m-learning/ADAPTATIONS.md` (if present) — apply the HIGH and MEDIUM `review` adaptations and the `review_strictness` preference recorded there; proceed normally if it does not exist. Current-session instructions always override a learned adaptation.
 
 ## Execution
 
