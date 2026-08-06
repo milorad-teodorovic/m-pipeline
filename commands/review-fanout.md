@@ -222,6 +222,47 @@ Append to `.m/GAPS.md`.
 - `APPROVED` — clean
 - `N/A` — no change set to review (empty diff, nothing staged, or no resolved target)
 
+## Learning Signal
+
+After the judge produces the verdict, append one JSON line to
+`~/.claude/m-learning/signals/pipeline-events.jsonl` with the file tools —
+never a Bash `echo`, matching the append convention in `/m:develop`:
+
+```json
+{"timestamp":"<ISO-8601 UTC>","type":"review_precision","project":"<repo dir basename>","skill":"review-fanout","findings_total":M,"findings_survived":N,"findings_merged":G,"findings_dismissed":D,"verdict":"BLOCKED|APPROVED WITH WARNINGS|APPROVED|N/A"}
+```
+
+The counts partition every finding the lenses returned, so `M = N + G + D`.
+Each maps onto a number already stated in Review Metadata — do not compute a
+new aggregate:
+
+- `findings_total` — the sum of **Findings per lens**, before dedup and
+  before judge re-verification.
+- `findings_survived` — **Merged findings** after dedup, minus anything the
+  judge discarded. This is the count shown under Findings.
+- `findings_merged` — how many findings dedup folded into another, that is
+  the sum of **Findings per lens** minus **Merged findings**. Lens agreement
+  is the point of fanout, so merges must never be counted as dismissals.
+- `findings_dismissed` — findings that failed judge re-verification, listed
+  under Discarded.
+
+When the second engine ran (provider `codex` or `kimi`), append a second
+line recording whether the stricter-verdict rule changed the outcome:
+
+```json
+{"timestamp":"<ISO-8601 UTC>","type":"engine_disagreement","project":"<repo dir basename>","provider":"codex|kimi","claude_verdict":"<verdict>","engine_verdict":"<verdict>","final_verdict":"<verdict>","stricter_applied":true|false}
+```
+
+Set `stricter_applied` to `true` only when the disagreement rule actually
+downgraded a more permissive verdict.
+
+Signal writing is non-blocking. A failed append never changes the verdict,
+never fails the review, and is reported as one line in chat.
+
+The signals file is global and concurrent `/m:*` sessions append to it at
+once. Build the whole record first and append it as one complete line in a
+single write; never rewrite or reflow lines that are already in the file.
+
 ## Lens Prompt Templates
 
 Use the templates in `${CLAUDE_PLUGIN_ROOT}/references/lens-templates.md` as the `prompt` field when spawning each lens via the Agent tool. The reference file contains one template per lens (security, architecture, tests, performance, migrations, observability, api-contracts, compliance) with focus areas, method, and required output format. Read the matching section for each lens you spawn — do not duplicate the template here.

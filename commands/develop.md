@@ -46,7 +46,18 @@ Immediately after the user invokes `/m:develop`, before anything else:
 Before moving from phase A to phase B:
 
 1. Verify `.m/phase-<A>-done` exists. If missing, re-enter phase A via its
-   skill — do NOT proceed.
+   skill — do NOT proceed. Every re-entry appends one JSON line to
+   `~/.claude/m-learning/signals/pipeline-events.jsonl` with the file tools,
+   never a Bash `echo`:
+   ```json
+   {"timestamp":"<ISO-8601 UTC>","type":"phase_reentry","project":"<repo dir basename>","phase":"<A>","reason":"missing_done_marker"}
+   ```
+   A phase that has to be re-run is evidence that the phase before it
+   under-specified the work, which is why the re-entry is recorded rather
+   than silently retried. Signal writing is non-blocking: a failed append
+   never blocks the re-entry and is reported as one line in chat. The file
+   is global and concurrent sessions append to it, so write the record as
+   one complete line in a single append and never rewrite existing lines.
 2. Overwrite `.m/DEVELOP_ACTIVE` with `current_phase: <B>`.
 3. Invoke `Skill(skill="m:<B>")` as the first action of phase B.
 

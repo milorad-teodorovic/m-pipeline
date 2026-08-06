@@ -111,6 +111,31 @@ Use `PASSED` or `BLOCKED` for the final verdict.
 - `PASSED` requires all four exit-predicate clauses = yes (or `n/a` for clause 2 when no review was run, and `n/a` for clause 4 when no `.m/PRD-*.md` exists for this change).
 - `BLOCKED` means at least one clause failed. Name which one(s) and why.
 
+## Learning Signal
+
+After the verdict is determined, append one JSON line to
+`~/.claude/m-learning/signals/pipeline-events.jsonl` with the file tools —
+never a Bash `echo`, matching the append convention in `/m:develop`:
+
+```json
+{"timestamp":"<ISO-8601 UTC>","type":"iterate_loop","project":"<repo dir basename>","loops":N,"verdict":"PASSED|BLOCKED","failed_clause":null,"per_loop":[{"loop":1,"fixed":0,"remaining":0,"new":0}]}
+```
+
+The `per_loop` array reuses the counts already emitted as the
+`Loop {n}/3: {fixed_count} fixed, {remaining_count} remaining, {new_count} new`
+progress line, one entry per loop actually run.
+
+`failed_clause` names the first unsatisfied clause of the exit predicate —
+one of `tests_green`, `zero_critical_findings`, `progress_updated`, or
+`prd_criteria` — and is `null` on a `PASSED` verdict.
+
+Signal writing is non-blocking. A failed append never changes the verdict,
+never fails the run, and is reported as one line in chat.
+
+The signals file is global and concurrent `/m:*` sessions append to it at
+once. Build the whole record first and append it as one complete line in a
+single write; never rewrite or reflow lines that are already in the file.
+
 ## Rules
 
 - Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). `PASSED` requires the exit predicate with quoted commands and exit codes — never the loop cap, never an un-re-run fix.

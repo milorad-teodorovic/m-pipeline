@@ -241,6 +241,46 @@ Return one of:
 - `APPROVED` — clean review
 - `N/A` — no change set to review (empty diff, nothing staged, or no resolved target)
 
+## Learning Signal
+
+After the verdict is determined, append one JSON line to
+`~/.claude/m-learning/signals/pipeline-events.jsonl` with the file tools —
+never a Bash `echo`, matching the append convention in `/m:develop`:
+
+```json
+{"timestamp":"<ISO-8601 UTC>","type":"review_precision","project":"<repo dir basename>","skill":"review","findings_total":M,"findings_survived":N,"findings_merged":G,"findings_dismissed":D,"verdict":"BLOCKED|APPROVED WITH WARNINGS|APPROVED|N/A"}
+```
+
+The counts partition every finding the passes produced, so `M = N + G + D`:
+
+- `findings_total` — every finding produced before the final verification
+  pass.
+- `findings_survived` — the count that survived verification and appears
+  under Findings. This is the N in **Findings verified** in Review Metadata.
+- `findings_merged` — duplicates folded into another finding by the merge
+  step. A merged finding is not a review defect, and keeping it out of
+  `findings_dismissed` is what makes the survival ratio meaningful to
+  `/m:learn`.
+- `findings_dismissed` — findings that failed verification, listed under
+  Discarded Findings.
+
+When the second engine ran (provider `codex` or `kimi`), append a second
+line recording whether the stricter-verdict rule changed the outcome:
+
+```json
+{"timestamp":"<ISO-8601 UTC>","type":"engine_disagreement","project":"<repo dir basename>","provider":"codex|kimi","claude_verdict":"<verdict>","engine_verdict":"<verdict>","final_verdict":"<verdict>","stricter_applied":true|false}
+```
+
+Set `stricter_applied` to `true` only when the disagreement rule actually
+downgraded a more permissive verdict.
+
+Signal writing is non-blocking. A failed append never changes the verdict,
+never fails the review, and is reported as one line in chat.
+
+The signals file is global and concurrent `/m:*` sessions append to it at
+once. Build the whole record first and append it as one complete line in a
+single write; never rewrite or reflow lines that are already in the file.
+
 ## Rules
 
 - Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). Never skip a tier-required pass; never let the more permissive verdict win when the second engine disagrees.
