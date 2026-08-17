@@ -139,7 +139,8 @@ single write; never rewrite or reflow lines that are already in the file.
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). `PASSED` requires the exit predicate with quoted commands and exit codes — never the loop cap, never an un-re-run fix.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire iterate run. No shortcuts: never declare `PASSED` on the loop-count cap, never claim "tests pass" without quoting the command and exit code, never assume a fix worked without re-running the check, never collapse a PRD success-criterion check because verifying it "feels expensive". Use tools fully: run the actual test/lint/build commands, Read every fixed region after the edit, Grep for related call sites the fix may have broken. Do not compress reasoning — every loop carries forward the full failure context, not a summary.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md`. Resolve every factual question via tools before pausing the loop to ask the user. Run the test, Read the failing region, Grep the symbol. Only `[USER-INTENT]` residues (acceptance-criterion ambiguity that no source resolves, scope decisions outside the PRD) interrupt iteration.
 - Re-run the relevant checks after every fix loop
 - An intermittently failing test is characterized before it is judged: re-run it several times, report the observed pass/fail pattern as an open item, and never let a single green re-run count as conclusive
 - Keep CURRENT issues separate from PRE-EXISTING gaps

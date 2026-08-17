@@ -1,8 +1,8 @@
 ---
 description: Turn a raw request into an execution-ready PRD via active grilling. Use when user says "ask questions", "examine", "challenge this", "what am I missing", "stress test", "let's align", or wants a refined spec before planning or implementation.
 argument-hint: [request]
-model: claude-opus-5
-effort: high
+model: claude-opus-4-8
+effort: xhigh
 ---
 # /m:refine - Request Refinement (Grill Stage)
 
@@ -100,7 +100,7 @@ Every question that reaches the user MUST be prefixed `[USER-INTENT]` in the men
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). The grill is the value producer — do not collapse it.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire refine. No shortcuts: do not skip Phase 0 (optimal-version reframe) for anything larger than a trivial bug, do not accept the first spec without at least one grill round, do not paraphrase a requirement to make it easier to satisfy. Use tools fully: validate every cited file path against actual repo state, fetch Jira via the `atlassian` MCP rather than improvising, prefer `context7` for library questions. Do not compress reasoning to save tokens — the grill is the value producer; collapsing it silently downgrades every downstream stage.
 - Prefer concrete acceptance criteria over generic summaries
 - If UI work is involved, preserve the existing design system unless the user explicitly asks for a redesign
 - If repo health limits confidence, say so in Assumptions

@@ -1,9 +1,9 @@
 ---
 description: Parallel-lens code review — blind specialist subagents (security, architecture, tests, performance, migrations, observability, api-contracts, compliance) reconciled by a judge pass. Use for medium-to-large diffs (4+ files) or cross-stack changes.
 argument-hint: [target]
-model: claude-opus-5
+model: claude-opus-4-8
 effort: xhigh
-allowed-tools: Read, Grep, Glob, Write, Bash(git:*), Bash(gh:*), Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(mkdir:*), Bash(rm -f .m/handoff/:*), Bash(rm -rf .m/handoff/:*), Agent
+allowed-tools: Read, Grep, Glob, Write, Bash(git:*), Bash(gh:*), Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(mkdir:*), Bash(rm -f .m/handoff/:*), Bash(rm -rf .m/handoff/:*), Agent, Workflow
 ---
 # /m:review-fanout - Parallel-Lens Review
 
@@ -55,7 +55,13 @@ read `review`, stop and tell the user — the pipeline is out of sync.
 
 ### Step 0: Footprint + Lens Selection
 
-Measure the change with `git diff --shortstat` (unstaged), `git diff --shortstat --cached` (staged), and `git diff --name-only` (file list).
+Measure the change:
+
+```bash
+git diff --shortstat
+git diff --shortstat --cached
+git diff --name-only
+```
 
 **Empty change set.** If there is no diff, nothing staged, and the target resolves to zero changed files, there is nothing to review — report "no change set to review" plainly, return an `N/A` verdict, and stop. Do not spawn lenses or fabricate findings for nonexistent code.
 
@@ -268,9 +274,14 @@ single write; never rewrite or reflow lines that are already in the file.
 
 Use the templates in `${CLAUDE_PLUGIN_ROOT}/references/lens-templates.md` as the `prompt` field when spawning each lens via the Agent tool. The reference file contains one template per lens (security, architecture, tests, performance, migrations, observability, api-contracts, compliance) with focus areas, method, and required output format. Read the matching section for each lens you spawn — do not duplicate the template here.
 
+## Ultracode
+
+When the Workflow tool is available in the session, run the lens fan-out and the per-finding verification as one Workflow script instead of individual Agent calls. This instruction is the orchestration opt-in; do not wait for an ultracode keyword from the user. Keep the lens prompts, lens blindness, and the judge pass unchanged — the script only makes the fan-out deterministic. When the Workflow tool is absent, use the Agent-based fan-out above.
+
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding) to every lens and the judge. Fanout is breadth-first by design — never spawn lenses serially, never let the more permissive verdict win silently.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` to every lens and the judge. No shortcuts: never spawn lenses serially to "save context", never let a lens emit a finding without `file:line` evidence + verbatim Read snippet, never let the more permissive second-engine/judge verdict win silently. Use tools fully: lenses Read every cited file in their lane, the judge Reads every cross-lens conflict before resolving it. Do not compress reasoning to save tokens — fanout is breadth-first by design, and collapsing it defeats the pattern.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` before any user-facing question (the second-engine passes, Jira fallbacks). Resolve `[FACTUAL]` residues via Read/Grep/Glob/Bash/MCP; only `[USER-INTENT]` questions reach the user, each prefixed `[USER-INTENT]`.
 - Lenses run in **parallel and blind**. Breaking either property breaks the pattern.
 - Every lens applies `${CLAUDE_PLUGIN_ROOT}/rules/verification.md`. No exceptions.
 - Judge re-verifies every critical and high finding. No exceptions.

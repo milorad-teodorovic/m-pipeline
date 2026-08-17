@@ -1,8 +1,8 @@
 ---
 description: Build or refresh persistent project memory under .m/ (INDEX, TASKS, PROGRESS, GAPS, RESEARCH). Use on first /m:* run in a repo or when index is stale. Foundation for downstream /m:* stages.
 argument-hint: [focus-area]
-model: claude-opus-5
-effort: high
+model: claude-opus-4-8
+effort: xhigh
 allowed-tools: Read, Grep, Glob, Edit, Write, Bash(git:*), Agent
 ---
 # /m:index - Project Indexer
@@ -95,7 +95,7 @@ Produce or refresh an index with:
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). A thin index breaks every downstream `/m:*` stage that depends on it.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire index run. No shortcuts: do not bootstrap `.m/INDEX.md` from a guess of repo structure when the actual files exist; do not skip Group A/B/C/D scans because the repo "looks small". Use tools fully: Read manifests, lockfiles, and existing `.m/` and `PROJECT_INDEX.*` content before scanning code; spawn an `Explore` subagent (`model: haiku` — read-only discovery, no reasoning downgrade where it matters) if discovery would span more than three queries. Do not compress reasoning to save tokens — a thin index breaks every downstream `/m:*` stage that depends on it.
 - Preserve user-authored content and history
 - Update surgically instead of rewriting files wholesale
 - Call out conflicting or stale source documents when you find them

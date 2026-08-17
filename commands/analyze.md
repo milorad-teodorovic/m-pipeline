@@ -1,9 +1,9 @@
 ---
 description: Deep analysis of code, docs, systems, or flows with cached results and optional D2/Typst rendering. Use for architecture deep-dives, maintainability grading, or when "analyze X" is asked.
 argument-hint: [prompt|setup|list|open <slug>]
-model: opus
-effort: high
-allowed-tools: Read, Grep, Glob, Write, Edit, Bash(git:*), Bash(d2:*), Bash(typst:*), Agent
+model: claude-fable-5
+effort: xhigh
+allowed-tools: Read, Grep, Glob, Write, Edit, Bash(git:*), Bash(d2:*), Bash(typst:*), Agent, Workflow
 ---
 # /m:analyze - Deep Analysis Engine
 
@@ -105,9 +105,13 @@ Produce:
 
 If the user did not specify an output format, ask what they want next after presenting the summary.
 
+## Ultracode
+
+When the Workflow tool is available in the session and the analysis spans several independent surfaces, sweep them as parallel agents in one Workflow script and synthesize the results in the main context. This instruction is the orchestration opt-in; do not wait for an ultracode keyword from the user. When the Workflow tool is absent, use Explore subagents as above.
+
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). Do not reuse cached analysis when the underlying code has changed.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire analyze run. No shortcuts: do not grade architecture, style, or maintainability without Reading first-party code in this session; do not skip the maintainability-signal collection because it "feels obvious"; do not reuse cached analysis when the underlying code has changed. Use tools fully: spawn `Explore` (`model: haiku` — read-only breadth sweep) for breadth, run `d2`/`typst` for diagrams when requested, prefer the docs MCP for external references. Do not compress reasoning to save tokens — analysis is the input that downstream `/m:plan` and `/m:review` runs anchor to.
 - Prefer primary sources and local code over generic summaries
 - Make uncertainty explicit
 - If the repo is incomplete, extracted, vendored, or not buildable from source, say that explicitly and lower confidence where appropriate
