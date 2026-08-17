@@ -1,7 +1,7 @@
 ---
 description: Implement an approved plan or a direct request using repo patterns. Use after /m:plan completes or for clear direct asks. Writes code.
 argument-hint: [plan-or-request]
-model: claude-opus-5
+model: claude-opus-4-8
 effort: xhigh
 disable-model-invocation: false
 ---
@@ -71,7 +71,8 @@ This classification drives how aggressively to proceed vs pause for confirmation
 
 ## Implementation Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding): run the test runs the plan calls for, stay on `[CONFIRMED]` plan elements, escalate only genuine plan defects.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire implementation. No shortcuts: do not skip the test runs the plan calls for, do not silently drift from `[CONFIRMED]` plan elements, do not bypass `--no-verify`/`--force`-style escape hatches, and do not collapse multi-step tasks into one to "save time". Use tools fully: Read every file before editing, prefer `Edit`/`Write` over Bash for file mutation, run independent tool calls in parallel, and use the `atlassian` MCP for Jira context rather than improvising acceptance criteria. Do not compress reasoning or skip verification to save tokens — Simplified Technical English applies only to chat output.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md`. Before asking the user any question during implementation, run the self-serve pass: Read the file, Grep the symbol, run the test, call the MCP. Only escalate `[USER-INTENT]` residues (genuine plan defects, undecided design choices) back to the plan stage. Do not ask the user about facts the repository already records.
 - Match established project patterns exactly
 - Reuse shared types, components, utilities, and services before creating new ones
 - Keep the change to the minimum that satisfies the request. Do not add features, refactor adjacent code, or make "improvements" beyond what was asked — a bug fix does not need the surrounding code cleaned up. The right amount of complexity is the minimum needed for the current task; do not introduce abstractions, configuration knobs, or defensive layers the request did not call for. Validate input only at system boundaries such as user input and external API responses, not at every internal call site.

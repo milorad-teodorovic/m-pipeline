@@ -88,6 +88,6 @@ Show:
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` (read in full before proceeding). Write each signal exactly once with the file-system tools, never Bash echo.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md`. No shortcuts: write each signal exactly once, with the actual subcommand, skill, and timestamp; never silently skip persistence because the signal "feels minor". Use the file-system tools to read and append, not Bash echo. Do not compress reasoning or signal content — full context is what makes `/m:learn` useful.
 - Store signals as timestamped JSONL entries
 - Keep this layer opt-in; do not suggest it unless the user wants persistence

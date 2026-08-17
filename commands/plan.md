@@ -1,7 +1,7 @@
 ---
 description: Create an actionable implementation plan grounded in repo patterns and user-confirmed decisions. Uses second-engine (Codex or Kimi, config-driven) sanity passes and a grill loop until zero gaps. Use after /m:refine or when starting a non-trivial change.
 argument-hint: [refined-request]
-model: claude-opus-5
+model: claude-opus-4-8
 effort: xhigh
 allowed-tools: Read, Grep, Glob, Agent, TaskCreate, Bash(git:*), Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(mkdir:*), Bash(rm -f .m/handoff/:*), Bash(rm -rf .m/handoff/:*)
 ---
@@ -72,7 +72,13 @@ The Metered Invocation (Section 6), Operating-Rules Preamble (Section 4), Secret
 
 Explore the codebase — read the request, map relevant code paths, classify repo health, identify existing patterns. When the codebase map would span more than three searches, spawn `Explore` subagent(s) (`model: haiku`) for the breadth sweep; keep the synthesis, grilling, and the worktree `/m:research` spawn on the orchestrator's `opus`.
 
-Present each finding as a one-line `[OBSERVATION]` entry that names the concrete file or path it came from.
+Present all findings as `[OBSERVATION]`:
+
+```
+[OBSERVATION] Repository uses repository pattern for DB access (see pkg/repository/)
+[OBSERVATION] Auth middleware at pkg/middleware/auth.go uses JWT with tenant isolation
+[OBSERVATION] No existing test helpers for integration tests
+```
 
 Observations are input for the grill. They do NOT become plan elements without user confirmation.
 
@@ -123,7 +129,11 @@ Q2. {next gap}
 - If you catch yourself writing a plan element without a `[CONFIRMED]` trace, stop and convert it to a gap question
 - "The codebase already does X" is an observation, not a confirmation. The user must still confirm X applies to this change.
 
-**Research trigger:** If you encounter an unknown requiring external research (unfamiliar library, protocol, integration point), BLOCK — announce `BLOCKED — need research on <topic>`, state that isolated worktree research is being spawned, and spawn it.
+**Research trigger:** If you encounter an unknown requiring external research (unfamiliar library, protocol, integration point), BLOCK and spawn isolated research:
+
+```
+BLOCKED — need research on [topic]. Spawning isolated worktree research.
+```
 
 Spawn via `Agent(isolation: "worktree")` with ONLY the research question and relevant file paths. Do NOT include the refined spec, plan-so-far, or any conversation context in the agent prompt. Present research findings to user. User decides what to incorporate — research is advisory, the plan (user's plan) wins.
 
@@ -178,7 +188,8 @@ All other plan content (file changes, implementation steps, test strategy, error
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). The grill loop and the second-engine Pass-1/Pass-2 checks are mandatory, not friction to optimize away.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire plan run. No shortcuts: do not skip the grill loop, do not skip the second-engine Pass-1/Pass-2 checks when a provider is selected (they are mandatory, not gated — see the active provider's protocol), do not finalize a plan with any unconfirmed `[PROPOSED]` element. Use tools fully: Read every file cited in `[OBSERVATION]` entries, fetch Jira via the `atlassian` MCP rather than improvising acceptance criteria, prefer `context7` for library questions. Do not compress reasoning to save tokens — the grill is the value producer, not friction to optimize away.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` to every question the plan emits to the user. Resolve factual questions via Read, Grep, Glob, Bash, or MCP before asking. Only `[USER-INTENT]` residues (scope tradeoffs, business rules, preferences between equally valid options) reach the user. Prefix every user-facing question with `[USER-INTENT]`.
 
 ## Self-Check
 

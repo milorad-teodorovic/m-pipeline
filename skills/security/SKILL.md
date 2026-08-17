@@ -2,7 +2,7 @@
 name: security
 description: Broad standing-codebase security audit against current OWASP/CWE threat lists — not diff-scoped. Use for threat modeling, vulnerability audits, compliance-oriented security analysis, or when the user says "audit security", "threat model", "OWASP check", or "vulnerability audit". For evidence-only review of a specific diff/PR/commit, use /m:cr instead.
 argument-hint: [target scope]
-model: claude-opus-5
+model: claude-opus-4-8
 effort: max
 allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh api:*), Bash(gh repo view:*), WebSearch, WebFetch
 disable-model-invocation: true

@@ -1,9 +1,9 @@
 ---
 description: Focused, isolated research using internet sources, official docs, and local code. Spawns in a worktree to prevent context pollution. Use when planning encounters unknowns or user asks "research", "investigate", "compare options".
 argument-hint: [topic-or-question]
-model: claude-opus-5
+model: claude-opus-4-8
 effort: xhigh
-allowed-tools: Read, Grep, Glob, WebSearch, WebFetch, Agent, Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(git:*), Bash(mkdir:*), Bash(rm -f .m/handoff/:*), Bash(rm -rf .m/handoff/:*)
+allowed-tools: Read, Grep, Glob, WebSearch, WebFetch, Agent, Workflow, Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(git:*), Bash(mkdir:*), Bash(rm -f .m/handoff/:*), Bash(rm -rf .m/handoff/:*)
 ---
 # /m:research - Focused Research Workflow
 
@@ -72,9 +72,13 @@ When `second_engine.provider` is `codex` or `kimi` (see `${CLAUDE_PLUGIN_ROOT}/r
 
 The research agent does NOT write to `.m/RESEARCH.md`. The parent session writes findings to `.m/RESEARCH.md` if and when the user confirms they should be persisted.
 
+## Ultracode
+
+When the Workflow tool is available in the session, run the 2-5 research questions as parallel agents in one Workflow script. This instruction is the orchestration opt-in; do not wait for an ultracode keyword from the user. Keep the question set, the source rules, and the reconciliation step unchanged. When the Workflow tool is absent, run the questions with the existing agent pattern.
+
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). Primary sources over recall; the parent session relies on the full finding set, not a pre-summarised verdict.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire research run. No shortcuts: do not summarise from training-data recall when primary sources can be fetched, do not skip the local-code inspection step because the question "feels external", do not return a single recommendation when the user asked for a comparison. Use tools fully: prefer the `context7` MCP for library/SDK/API questions, run web research for changing or external facts, Read the local code paths the question touches. Do not compress reasoning to save tokens — the parent session relies on the full finding set, not a pre-summarised verdict.
 - Include concrete dates, versions, or protocol names when they matter
 - Make uncertainty explicit
 - If the repo is incomplete or extracted, distinguish what was observed locally from what had to be inferred

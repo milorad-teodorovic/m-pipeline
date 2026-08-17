@@ -1,7 +1,7 @@
 ---
 description: Multi-pass sequential code review with unified, evidence-backed findings, a mandatory second engine (Codex or Kimi, config-driven via .m/pipeline.yml second_engine:), and per-project compliance pass. Use for small-to-medium diffs (1-3 files) or when a single deep sweep is preferable to parallel fan-out.
 argument-hint: [target]
-model: claude-opus-5
+model: claude-opus-4-8
 effort: xhigh
 allowed-tools: Read, Grep, Glob, Write, Bash(git:*), Bash(gh:*), Bash(codex exec:*), Bash(codex --version), Bash(kimi -p:*), Bash(kimi --version), Bash(mkdir:*), Bash(rm -f .m/handoff/:*), Bash(rm -rf .m/handoff/:*), Agent
 ---
@@ -50,7 +50,13 @@ read `review`, stop and tell the user — the pipeline is out of sync.
 
 ### Step 0: Determine Footprint
 
-Before any review work, measure the change size with `git diff --shortstat` (unstaged), `git diff --shortstat --cached` (staged), and `git diff --name-only` (file list).
+Before any review work, measure the change size:
+
+```bash
+git diff --shortstat          # unstaged
+git diff --shortstat --cached # staged
+git diff --name-only          # file list
+```
 
 **Empty change set.** If all of the above show no changes (no diff, nothing staged, the target resolves to zero changed files, and the request text itself supplies no diff to review), there is nothing to review. Report "no change set to review" plainly, return an `N/A` verdict, and stop — do not fabricate findings or invent `file:line` references for nonexistent code, and do not return `APPROVED` or `BLOCKED`. A diff supplied inline in the request text is a valid change set even when the working tree is clean — review it as given.
 
@@ -284,7 +290,8 @@ single write; never rewrite or reflow lines that are already in the file.
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding). Never skip a tier-required pass; never let the more permissive verdict win when the second engine disagrees.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` for the entire review. No shortcuts: never skip a pass that the footprint tier or compliance scope requires, never emit a finding without `file:line` evidence and a verbatim Read snippet, never let the more permissive verdict win when the second engine disagrees with Claude. Use tools fully: Read every cited file in the verification pass, Grep for related call sites before clearing a finding, fetch Jira via the `atlassian` MCP. Do not compress reasoning to save tokens — the self-challenge gate exists because cheap-feeling reviews are where assumption errors hide.
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` before any user-facing question (the second-engine passes, Jira fallbacks). Resolve `[FACTUAL]` residues via Read/Grep/Glob/Bash/MCP; only `[USER-INTENT]` questions reach the user, each prefixed `[USER-INTENT]`.
 - Prefer zero findings over weak findings
 - Every finding MUST include file:line proof and a verified code snippet — no exceptions
 - Every finding goes through the verification pass — no shortcuts

@@ -91,10 +91,10 @@ Run together by `/m:develop`, or individually. Each is a real Skill with its own
 
 | # | Command | What it does | Model |
 |:-:|---------|--------------|:-----:|
-| ① | `/m:refine` | Grills a raw request into an execution-ready spec — optimal-version reframe, then bounded-menu questions until ambiguity is gone. | Opus 5 |
-| ② | `/m:plan` | Builds the implementation plan and challenges it with a second-engine (Codex or Kimi) sanity pass — grilled until zero gaps remain. | Opus 5 |
-| ③ | `/m:implement` | Writes code **to the approved plan only**, following repo patterns. Plan defects escalate back to plan rather than being improvised past. | Opus 5 |
-| ④ | `/m:review` · `/m:review-fanout` | Evidence-backed review. Sequential for small diffs; parallel blind-lens fan-out (security, architecture, tests, performance, migrations, observability, api-contracts, compliance) + judge for large ones. | Opus 5 |
+| ① | `/m:refine` | Grills a raw request into an execution-ready spec — optimal-version reframe, then bounded-menu questions until ambiguity is gone. | Opus 4.8 |
+| ② | `/m:plan` | Builds the implementation plan and challenges it with a second-engine (Codex or Kimi) sanity pass — grilled until zero gaps remain. | Opus 4.8 |
+| ③ | `/m:implement` | Writes code **to the approved plan only**, following repo patterns. Plan defects escalate back to plan rather than being improvised past. | Opus 4.8 |
+| ④ | `/m:review` · `/m:review-fanout` | Evidence-backed review. Sequential for small diffs; parallel blind-lens fan-out (security, architecture, tests, performance, migrations, observability, api-contracts, compliance) + judge for large ones. | Opus 4.8 |
 | ⑤ | `/m:iterate` | Test-and-fix loop until the exit predicate holds (tests green · zero critical findings · progress logged · PRD criteria met). The 3-loop cap is `BLOCKED`, never `PASSED`. | Sonnet 5 |
 
 ---
@@ -105,17 +105,17 @@ Run together by `/m:develop`, or individually. Each is a real Skill with its own
 
 | Command | Purpose | Model |
 |---------|---------|:-----:|
-| `/m:develop` | Run all five phases end-to-end with hard phase gates and second-engine review. | Opus 5 |
-| `/m:refine` · `/m:plan` · `/m:implement` · `/m:review` · `/m:review-fanout` · `/m:iterate` | The phases, standalone (see table above). | Opus 5 / Sonnet 5 |
+| `/m:develop` | Run all five phases end-to-end with hard phase gates and second-engine review. | Opus 4.8 |
+| `/m:refine` · `/m:plan` · `/m:implement` · `/m:review` · `/m:review-fanout` · `/m:iterate` | The phases, standalone (see table above). | Opus 4.8 / Sonnet 5 |
 
 **Support** — build, inspect, and learn from project memory:
 
 | Command | Purpose | Model |
 |---------|---------|:-----:|
-| `/m:index` | Build or refresh persistent `.m/` project memory (stack, patterns, hotspots). | Opus 5 |
+| `/m:index` | Build or refresh persistent `.m/` project memory (stack, patterns, hotspots). | Opus 4.8 |
 | `/m:status` | "Where are we" dashboard — focus, gaps, tasks, worktrees. Logs bugs and progress. | Sonnet 5 |
-| `/m:research` | Isolated worktree research for unknowns before planning — advisory only. | Opus 5 |
-| `/m:analyze` | Deep analysis of code/docs/systems, with optional diagrams and grading. | Opus 5 |
+| `/m:research` | Isolated worktree research for unknowns before planning — advisory only. | Opus 4.8 |
+| `/m:analyze` | Deep analysis of code/docs/systems, with optional diagrams and grading. | Fable 5 |
 | `/m:setup` | Diagnose and configure the second engine — provider, model, effort, per-repo block. | Sonnet 5 |
 | `/m:feedback` | Store explicit workflow preferences (filesystem only, no inference). | Haiku 4.5 |
 | `/m:learn` | Turn stored feedback signals into per-skill behavioral adaptations. | Sonnet 5 |

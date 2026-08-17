@@ -3,7 +3,7 @@ name: cr
 description: Security review of changed code — evidence-only, read-only. Use for manual security verification of PRs, commits, or local changes.
 argument-hint: [PR URL | commit | range | path]
 allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh api:*)
-model: claude-opus-5
+model: claude-opus-4-8
 effort: max
 disable-model-invocation: true
 ---

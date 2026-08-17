@@ -1,7 +1,7 @@
 ---
 description: Run the full /m delivery pipeline end-to-end (refine → plan → implement → review → iterate). Use when user wants a complete request delivered with quality gates, dual-engine review, and phase enforcement.
 argument-hint: [request]
-model: claude-opus-5
+model: claude-opus-4-8
 effort: xhigh
 disable-model-invocation: true
 ---
@@ -183,7 +183,8 @@ Inherit the tier from `/m:implement`. The tier gates how the pipeline proceeds:
 
 ## Rules
 
-- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` and `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` (read in full before proceeding) at every stage: no shortcuts, full tool use, `[USER-INTENT]`-only questions
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/rigor.md` at every stage. No shortcuts (no skipped phases, no inlined skill output, no `--no-verify` gates), full tool use (Read every cited file, run tests instead of predicting them, MCP for external state, parallel independent tool calls), and no compression of reasoning or verification work to save tokens. Simplified Technical English applies only to chat output, never to the work itself
+- Apply `${CLAUDE_PLUGIN_ROOT}/rules/self-serve.md` at every stage. Before any user-facing question, resolve factual residues via Read, Grep, Glob, Bash, or MCP. Only `[USER-INTENT]` questions (scope, tradeoffs, business rules, preferences) reach the user. Every user-facing question is prefixed `[USER-INTENT]`.
 - Treat critical or high-risk review and verification issues as gates, not soft suggestions
 - `/m:iterate` may only emit `PASSED` when its four-clause exit predicate is green. A loop-count exit is `BLOCKED`, not `PASSED`
 - The second engine runs automatically on plan, research, and review when `second_engine.provider` is `codex` or `kimi`; it is config-driven, not prompted. The default is `none` (Claude-only)
