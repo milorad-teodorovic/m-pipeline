@@ -1864,6 +1864,1274 @@
         "discount.go",
         "discount_test.go"
       ]
+    },
+    "develop--neutral-email": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "email_test.go",
+          "text": "func TestEmptyEmail(t *testing.T) {\n\tif got := NormalizeEmail(\"\"); got != \"\" {\n\t\tt.Fatalf(\"NormalizeEmail(empty) = %q\", got)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "normalize_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "email_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--email": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "email_test.go",
+          "text": "func TestEmptyEmail(t *testing.T) {\n\tif got := NormalizeEmail(\"\"); got != \"\" {\n\t\tt.Fatalf(\"NormalizeEmail(empty) = %q\", got)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "normalize_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "email_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-email"
+    },
+    "develop--neutral-limiter": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "limiter_test.go",
+          "text": "func TestFirstRequestAllowed(t *testing.T) {\n\tl := NewLimiter(1, time.Minute, time.Now)\n\tif !l.Allow(\"a\") {\n\t\tt.Fatal(\"first request denied\")\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "limiter_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "limiter_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--limiter": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "limiter_test.go",
+          "text": "func TestFirstRequestAllowed(t *testing.T) {\n\tl := NewLimiter(1, time.Minute, time.Now)\n\tif !l.Allow(\"a\") {\n\t\tt.Fatal(\"first request denied\")\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "limiter_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "limiter_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-limiter"
+    },
+    "develop--neutral-paginate": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "paginate_test.go",
+          "text": "func TestFirstPage(t *testing.T) {\n\tgot := Page([]string{\"a\", \"b\", \"c\", \"d\", \"e\"}, 1, 2)\n\tif !reflect.DeepEqual(got, []string{\"a\", \"b\"}) {\n\t\tt.Fatalf(\"Page(1, 2) = %v\", got)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "paginate_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "paginate_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--paginate": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "paginate_test.go",
+          "text": "func TestFirstPage(t *testing.T) {\n\tgot := Page([]string{\"a\", \"b\", \"c\", \"d\", \"e\"}, 1, 2)\n\tif !reflect.DeepEqual(got, []string{\"a\", \"b\"}) {\n\t\tt.Fatalf(\"Page(1, 2) = %v\", got)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "paginate_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "paginate_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-paginate"
+    },
+    "develop--neutral-lookup": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "users/store_test.go",
+          "text": "func TestGreeting(t *testing.T) {\n\ts := NewStore(User{ID: \"u1\", Name: \"Ana\", Role: \"member\"})\n\tif got := Greeting(s, \"u1\"); got != \"Hello, Ana\" {\n\t\tt.Fatalf(\"Greeting(u1) = %q\", got)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "lookup_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "users/store_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--lookup": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "users/store_test.go",
+          "text": "func TestGreeting(t *testing.T) {\n\ts := NewStore(User{ID: \"u1\", Name: \"Ana\", Role: \"member\"})\n\tif got := Greeting(s, \"u1\"); got != \"Hello, Ana\" {\n\t\tt.Fatalf(\"Greeting(u1) = %q\", got)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "lookup_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "users/store_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-lookup"
+    },
+    "develop--neutral-refund": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "service_test.go",
+          "text": "func TestPay(t *testing.T) {\n\trec := &recorder{}\n\ts := &Service{Store: NewStore(Invoice{ID: \"i1\", TotalCents: 1000, Status: StatusOpen}), Ledger: &Ledger{}, Notifier: rec}\n\tif err := s.Pay(\"i1\", 1000); err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif err := s.Pay(\"i1\", 1); !errors.Is(err, ErrOverpayment) {\n\t\tt.Fatalf(\"overpayment err = %v\", err)\n\t}\n\tif got := s.Ledger.Balance(AccountCash); got != 1000 {\n\t\tt.Fatalf(\"cash = %d\", got)\n\t}\n\tif len(rec.events) != 1 || rec.events[0].Type != EventPaid {\n\t\tt.Fatalf(\"events = %v\", rec.events)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "refund_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "service_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--refund": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "service_test.go",
+          "text": "func TestPay(t *testing.T) {\n\trec := &recorder{}\n\ts := &Service{Store: NewStore(Invoice{ID: \"i1\", TotalCents: 1000, Status: StatusOpen}), Ledger: &Ledger{}, Notifier: rec}\n\tif err := s.Pay(\"i1\", 1000); err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif err := s.Pay(\"i1\", 1); !errors.Is(err, ErrOverpayment) {\n\t\tt.Fatalf(\"overpayment err = %v\", err)\n\t}\n\tif got := s.Ledger.Balance(AccountCash); got != 1000 {\n\t\tt.Fatalf(\"cash = %d\", got)\n\t}\n\tif len(rec.events) != 1 || rec.events[0].Type != EventPaid {\n\t\tt.Fatalf(\"events = %v\", rec.events)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "refund_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "service_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-refund"
+    },
+    "develop--neutral-dst-schedule": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "schedule_test.go",
+          "text": "func TestNextRunUTC(t *testing.T) {\n\td := Daily{Hour: 2, Minute: 30}\n\tafter := time.Date(2026, 1, 10, 3, 0, 0, 0, time.UTC)\n\twant := time.Date(2026, 1, 11, 2, 30, 0, 0, time.UTC)\n\tif got := d.NextRun(after); !got.Equal(want) {\n\t\tt.Fatalf(\"NextRun = %v, want %v\", got, want)\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "dst_schedule_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "schedule_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--dst-schedule": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "schedule_test.go",
+          "text": "func TestNextRunUTC(t *testing.T) {\n\td := Daily{Hour: 2, Minute: 30}\n\tafter := time.Date(2026, 1, 10, 3, 0, 0, 0, time.UTC)\n\twant := time.Date(2026, 1, 11, 2, 30, 0, 0, time.UTC)\n\tif got := d.NextRun(after); !got.Equal(want) {\n\t\tt.Fatalf(\"NextRun = %v, want %v\", got, want)\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "dst_schedule_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "schedule_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-dst-schedule"
+    },
+    "develop--neutral-multi-file-contract": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "api/customer_test.go",
+          "text": "func TestGolden(t *testing.T) {\n\tgot, err := json.MarshalIndent(SampleCustomer(), \"\", \"  \")\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\twant, err := os.ReadFile(\"testdata/customer.golden.json\")\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif string(got)+\"\\n\" != string(want) {\n\t\tt.Fatalf(\"golden mismatch:\\n%s\", got)\n\t}\n}"
+        },
+        {
+          "id": "existing-test-2",
+          "kind": "contains",
+          "path": "api/customer_test.go",
+          "text": "func TestSampleValid(t *testing.T) {\n\tif err := SampleCustomer().Validate(); err != nil {\n\t\tt.Fatal(err)\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "multi_file_contract_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "api/customer_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--multi-file-contract": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "api/customer_test.go",
+          "text": "func TestGolden(t *testing.T) {\n\tgot, err := json.MarshalIndent(SampleCustomer(), \"\", \"  \")\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\twant, err := os.ReadFile(\"testdata/customer.golden.json\")\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif string(got)+\"\\n\" != string(want) {\n\t\tt.Fatalf(\"golden mismatch:\\n%s\", got)\n\t}\n}"
+        },
+        {
+          "id": "existing-test-2",
+          "kind": "contains",
+          "path": "api/customer_test.go",
+          "text": "func TestSampleValid(t *testing.T) {\n\tif err := SampleCustomer().Validate(); err != nil {\n\t\tt.Fatal(err)\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "multi_file_contract_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "api/customer_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-multi-file-contract"
+    },
+    "develop--neutral-pagination-cursor": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "store_test.go",
+          "text": "func TestStoreAddDelete(t *testing.T) {\n\ts := NewStore()\n\tbase := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)\n\ts.Add(Product{ID: 1, Name: \"a\", CreatedAt: base})\n\ts.Add(Product{ID: 2, Name: \"b\", CreatedAt: base.Add(time.Minute)})\n\ts.Delete(1)\n\tall := s.All()\n\tif len(all) != 1 || all[0].ID != 2 {\n\t\tt.Fatalf(\"All = %+v\", all)\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "pagination_cursor_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "store_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--pagination-cursor": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "store_test.go",
+          "text": "func TestStoreAddDelete(t *testing.T) {\n\ts := NewStore()\n\tbase := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)\n\ts.Add(Product{ID: 1, Name: \"a\", CreatedAt: base})\n\ts.Add(Product{ID: 2, Name: \"b\", CreatedAt: base.Add(time.Minute)})\n\ts.Delete(1)\n\tall := s.All()\n\tif len(all) != 1 || all[0].ID != 2 {\n\t\tt.Fatalf(\"All = %+v\", all)\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "pagination_cursor_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "store_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-pagination-cursor"
+    },
+    "develop--neutral-retry-budget": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "client_test.go",
+          "text": "func TestDoReturnsResponse(t *testing.T) {\n\tsrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\t_, _ = io.WriteString(w, \"ok\")\n\t}))\n\tdefer srv.Close()\n\treq, _ := http.NewRequest(http.MethodGet, srv.URL, nil)\n\tresp, err := (&Client{}).Do(req)\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tdefer resp.Body.Close()\n\tbody, _ := io.ReadAll(resp.Body)\n\tif resp.StatusCode != http.StatusOK || string(body) != \"ok\" {\n\t\tt.Fatalf(\"got %d %q\", resp.StatusCode, body)\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "retry_budget_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "client_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--retry-budget": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "client_test.go",
+          "text": "func TestDoReturnsResponse(t *testing.T) {\n\tsrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\t_, _ = io.WriteString(w, \"ok\")\n\t}))\n\tdefer srv.Close()\n\treq, _ := http.NewRequest(http.MethodGet, srv.URL, nil)\n\tresp, err := (&Client{}).Do(req)\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tdefer resp.Body.Close()\n\tbody, _ := io.ReadAll(resp.Body)\n\tif resp.StatusCode != http.StatusOK || string(body) != \"ok\" {\n\t\tt.Fatalf(\"got %d %q\", resp.StatusCode, body)\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "retry_budget_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "client_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-retry-budget"
+    },
+    "develop--neutral-symptom-vs-root": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "worker_test.go",
+          "text": "func TestDrainDelivers(t *testing.T) {\n\ttr := &countingTransport{}\n\tw := &Worker{Queue: &Queue{}, Mailer: &Mailer{Transport: tr}, Timeout: time.Second}\n\tw.Queue.Enqueue(\"a@example.com\", \"hello\")\n\tw.Drain()\n\tif tr.count != 1 {\n\t\tt.Fatalf(\"deliveries = %d, want 1\", tr.count)\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "symptom_vs_root_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "worker_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--symptom-vs-root": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "worker_test.go",
+          "text": "func TestDrainDelivers(t *testing.T) {\n\ttr := &countingTransport{}\n\tw := &Worker{Queue: &Queue{}, Mailer: &Mailer{Transport: tr}, Timeout: time.Second}\n\tw.Queue.Enqueue(\"a@example.com\", \"hello\")\n\tw.Drain()\n\tif tr.count != 1 {\n\t\tt.Fatalf(\"deliveries = %d, want 1\", tr.count)\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "symptom_vs_root_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "worker_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-symptom-vs-root"
+    },
+    "develop--neutral-tenant-scoping": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "httpapi/handler_test.go",
+          "text": "func TestListInvoices(t *testing.T) {\n\tnow := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)\n\ts := store.New(\n\t\tstore.Invoice{ID: \"a1\", TenantID: \"acme\", Status: \"paid\", Cents: 100, CreatedAt: now},\n\t\tstore.Invoice{ID: \"b1\", TenantID: \"globex\", Status: \"paid\", Cents: 200, CreatedAt: now},\n\t)\n\th := NewHandler(s, map[string]string{\"key-acme\": \"acme\"})\n\treq := httptest.NewRequest(http.MethodGet, \"/invoices\", nil)\n\treq.Header.Set(\"X-API-Key\", \"key-acme\")\n\trec := httptest.NewRecorder()\n\th.ServeHTTP(rec, req)\n\tvar got []invoiceJSON\n\tif err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || len(got) != 1 || got[0].ID != \"a1\" {\n\t\tt.Fatalf(\"GET /invoices = %d %s\", rec.Code, rec.Body.String())\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "tenant_scoping_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "httpapi/handler_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--tenant-scoping": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "httpapi/handler_test.go",
+          "text": "func TestListInvoices(t *testing.T) {\n\tnow := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)\n\ts := store.New(\n\t\tstore.Invoice{ID: \"a1\", TenantID: \"acme\", Status: \"paid\", Cents: 100, CreatedAt: now},\n\t\tstore.Invoice{ID: \"b1\", TenantID: \"globex\", Status: \"paid\", Cents: 200, CreatedAt: now},\n\t)\n\th := NewHandler(s, map[string]string{\"key-acme\": \"acme\"})\n\treq := httptest.NewRequest(http.MethodGet, \"/invoices\", nil)\n\treq.Header.Set(\"X-API-Key\", \"key-acme\")\n\trec := httptest.NewRecorder()\n\th.ServeHTTP(rec, req)\n\tvar got []invoiceJSON\n\tif err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || len(got) != 1 || got[0].ID != \"a1\" {\n\t\tt.Fatalf(\"GET /invoices = %d %s\", rec.Code, rec.Body.String())\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "tenant_scoping_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "httpapi/handler_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-tenant-scoping"
+    },
+    "develop--neutral-wire-compat": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "codec_test.go",
+          "text": "func TestDecodeStoredNames(t *testing.T) {\n\tfor _, file := range []string{\"testdata/customer_v1.json\", \"testdata/customer_v2.json\"} {\n\t\tdata, err := os.ReadFile(file)\n\t\tif err != nil {\n\t\t\tt.Fatal(err)\n\t\t}\n\t\tgot, err := Decode(data)\n\t\tif err != nil || got.FirstName != \"Ana\" || got.LastName != \"Diaz\" {\n\t\t\tt.Errorf(\"Decode(%s) = %+v, %v\", file, got, err)\n\t\t}\n\t}\n}"
+        },
+        {
+          "id": "existing-test-2",
+          "kind": "contains",
+          "path": "codec_test.go",
+          "text": "func TestDecodeUnknownVersion(t *testing.T) {\n\tfor _, data := range []string{`{\"version\":99}`, `{\"first_name\":\"Ana\"}`} {\n\t\tif _, err := Decode([]byte(data)); !errors.Is(err, ErrUnknownVersion) {\n\t\t\tt.Errorf(\"Decode(%s) err = %v, want ErrUnknownVersion\", data, err)\n\t\t}\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "wire_compat_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "codec_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--wire-compat": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "codec_test.go",
+          "text": "func TestDecodeStoredNames(t *testing.T) {\n\tfor _, file := range []string{\"testdata/customer_v1.json\", \"testdata/customer_v2.json\"} {\n\t\tdata, err := os.ReadFile(file)\n\t\tif err != nil {\n\t\t\tt.Fatal(err)\n\t\t}\n\t\tgot, err := Decode(data)\n\t\tif err != nil || got.FirstName != \"Ana\" || got.LastName != \"Diaz\" {\n\t\t\tt.Errorf(\"Decode(%s) = %+v, %v\", file, got, err)\n\t\t}\n\t}\n}"
+        },
+        {
+          "id": "existing-test-2",
+          "kind": "contains",
+          "path": "codec_test.go",
+          "text": "func TestDecodeUnknownVersion(t *testing.T) {\n\tfor _, data := range []string{`{\"version\":99}`, `{\"first_name\":\"Ana\"}`} {\n\t\tif _, err := Decode([]byte(data)); !errors.Is(err, ErrUnknownVersion) {\n\t\t\tt.Errorf(\"Decode(%s) err = %v, want ErrUnknownVersion\", data, err)\n\t\t}\n\t}\n}"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "*testdata/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "wire_compat_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "codec_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-wire-compat"
+    },
+    "develop--neutral-gin-header-binding": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-context",
+          "kind": "contains",
+          "path": "context_test.go",
+          "text": "func TestContextBindWithQuery(t *testing.T) {\n\tw := httptest.NewRecorder()\n\tc, _ := CreateTestContext(w)\n\n\tc.Request, _ = http.NewRequest(\"POST\", \"/?foo=bar&bar=foo\", bytes.NewBufferString(\"foo=unused\"))\n\n\tvar obj struct {\n\t\tFoo string `form:\"foo\"`\n\t\tBar string `form:\"bar\"`\n\t}\n\tassert.NoError(t, c.BindQuery(&obj))\n\tassert.Equal(t, \"foo\", obj.Bar)\n\tassert.Equal(t, \"bar\", obj.Foo)\n\tassert.Equal(t, 0, w.Body.Len())\n}\n"
+        },
+        {
+          "id": "existing-test-binding",
+          "kind": "contains",
+          "path": "binding/binding_test.go",
+          "text": "func TestUriBinding(t *testing.T) {\n\tb := Uri\n\tassert.Equal(t, \"uri\", b.Name())\n\n\ttype Tag struct {\n\t\tName string `uri:\"name\"`\n\t}\n\tvar tag Tag\n\tm := make(map[string][]string)\n\tm[\"name\"] = []string{\"thinkerou\"}\n\tassert.NoError(t, b.BindUri(m, &tag))\n\tassert.Equal(t, \"thinkerou\", tag.Name)\n\n\ttype NotSupportStruct struct {\n\t\tName map[string]interface{} `uri:\"name\"`\n\t}\n\tvar not NotSupportStruct\n\tassert.Error(t, b.BindUri(m, &not))\n\tassert.Equal(t, map[string]interface{}(nil), not.Name)\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "go.sum"
+          ]
+        },
+        {
+          "id": "independent-tests-binding",
+          "kind": "oracle",
+          "file": "gin_header_binding_test.go",
+          "dir": "binding",
+          "timeout": 600
+        },
+        {
+          "id": "independent-tests-context",
+          "kind": "oracle",
+          "file": "gin_header_context_test.go",
+          "dir": ".",
+          "timeout": 600
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "context.go",
+        "binding/binding.go"
+      ],
+      "initial_diff": [],
+      "ablation": true
+    },
+    "develop--gin-header-binding": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-context",
+          "kind": "contains",
+          "path": "context_test.go",
+          "text": "func TestContextBindWithQuery(t *testing.T) {\n\tw := httptest.NewRecorder()\n\tc, _ := CreateTestContext(w)\n\n\tc.Request, _ = http.NewRequest(\"POST\", \"/?foo=bar&bar=foo\", bytes.NewBufferString(\"foo=unused\"))\n\n\tvar obj struct {\n\t\tFoo string `form:\"foo\"`\n\t\tBar string `form:\"bar\"`\n\t}\n\tassert.NoError(t, c.BindQuery(&obj))\n\tassert.Equal(t, \"foo\", obj.Bar)\n\tassert.Equal(t, \"bar\", obj.Foo)\n\tassert.Equal(t, 0, w.Body.Len())\n}\n"
+        },
+        {
+          "id": "existing-test-binding",
+          "kind": "contains",
+          "path": "binding/binding_test.go",
+          "text": "func TestUriBinding(t *testing.T) {\n\tb := Uri\n\tassert.Equal(t, \"uri\", b.Name())\n\n\ttype Tag struct {\n\t\tName string `uri:\"name\"`\n\t}\n\tvar tag Tag\n\tm := make(map[string][]string)\n\tm[\"name\"] = []string{\"thinkerou\"}\n\tassert.NoError(t, b.BindUri(m, &tag))\n\tassert.Equal(t, \"thinkerou\", tag.Name)\n\n\ttype NotSupportStruct struct {\n\t\tName map[string]interface{} `uri:\"name\"`\n\t}\n\tvar not NotSupportStruct\n\tassert.Error(t, b.BindUri(m, &not))\n\tassert.Equal(t, map[string]interface{}(nil), not.Name)\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "go.sum"
+          ]
+        },
+        {
+          "id": "independent-tests-binding",
+          "kind": "oracle",
+          "file": "gin_header_binding_test.go",
+          "dir": "binding",
+          "timeout": 600
+        },
+        {
+          "id": "independent-tests-context",
+          "kind": "oracle",
+          "file": "gin_header_context_test.go",
+          "dir": ".",
+          "timeout": 600
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "context.go",
+        "binding/binding.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-gin-header-binding"
+    },
+    "develop--neutral-gin-query-method": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "routes_test.go",
+          "text": "func TestRouterMethod(t *testing.T) {\n\trouter := New()\n\trouter.PUT(\"/hey2\", func(c *Context) {\n\t\tc.String(http.StatusOK, \"sup2\")\n\t})\n\n\trouter.PUT(\"/hey\", func(c *Context) {\n\t\tc.String(http.StatusOK, \"called\")\n\t})\n\n\trouter.PUT(\"/hey3\", func(c *Context) {\n\t\tc.String(http.StatusOK, \"sup3\")\n\t})\n\n\tw := PerformRequest(router, http.MethodPut, \"/hey\")\n\n\tassert.Equal(t, http.StatusOK, w.Code)\n\tassert.Equal(t, \"called\", w.Body.String())\n}\n"
+        },
+        {
+          "id": "existing-test-2",
+          "kind": "contains",
+          "path": "routergroup_test.go",
+          "text": "func TestRouterGroupBasic(t *testing.T) {\n\trouter := New()\n\tgroup := router.Group(\"/hola\", func(c *Context) {})\n\tgroup.Use(func(c *Context) {})\n\n\tassert.Len(t, group.Handlers, 2)\n\tassert.Equal(t, \"/hola\", group.BasePath())\n\tassert.Equal(t, router, group.engine)\n\n\tgroup2 := group.Group(\"manu\")\n\tgroup2.Use(func(c *Context) {}, func(c *Context) {})\n\n\tassert.Len(t, group2.Handlers, 4)\n\tassert.Equal(t, \"/hola/manu\", group2.BasePath())\n\tassert.Equal(t, router, group2.engine)\n}\n"
+        },
+        {
+          "id": "existing-test-3",
+          "kind": "contains",
+          "path": "ginS/gins_test.go",
+          "text": "func TestGET(t *testing.T) {\n\tGET(\"/test\", func(c *gin.Context) {\n\t\tc.String(http.StatusOK, \"test\")\n\t})\n\n\treq := httptest.NewRequest(http.MethodGet, \"/test\", nil)\n\tw := httptest.NewRecorder()\n\tengine().ServeHTTP(w, req)\n\n\tassert.Equal(t, http.StatusOK, w.Code)\n\tassert.Equal(t, \"test\", w.Body.String())\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "go.sum"
+          ]
+        },
+        {
+          "id": "independent-tests-1",
+          "kind": "oracle",
+          "file": "gin_query_routes_test.go",
+          "dir": ".",
+          "timeout": 600
+        },
+        {
+          "id": "independent-tests-2",
+          "kind": "oracle",
+          "file": "gin_query_gins_test.go",
+          "dir": "ginS",
+          "timeout": 600
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "routergroup.go",
+        "ginS/gins.go"
+      ],
+      "initial_diff": [],
+      "ablation": true
+    },
+    "develop--gin-query-method": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "routes_test.go",
+          "text": "func TestRouterMethod(t *testing.T) {\n\trouter := New()\n\trouter.PUT(\"/hey2\", func(c *Context) {\n\t\tc.String(http.StatusOK, \"sup2\")\n\t})\n\n\trouter.PUT(\"/hey\", func(c *Context) {\n\t\tc.String(http.StatusOK, \"called\")\n\t})\n\n\trouter.PUT(\"/hey3\", func(c *Context) {\n\t\tc.String(http.StatusOK, \"sup3\")\n\t})\n\n\tw := PerformRequest(router, http.MethodPut, \"/hey\")\n\n\tassert.Equal(t, http.StatusOK, w.Code)\n\tassert.Equal(t, \"called\", w.Body.String())\n}\n"
+        },
+        {
+          "id": "existing-test-2",
+          "kind": "contains",
+          "path": "routergroup_test.go",
+          "text": "func TestRouterGroupBasic(t *testing.T) {\n\trouter := New()\n\tgroup := router.Group(\"/hola\", func(c *Context) {})\n\tgroup.Use(func(c *Context) {})\n\n\tassert.Len(t, group.Handlers, 2)\n\tassert.Equal(t, \"/hola\", group.BasePath())\n\tassert.Equal(t, router, group.engine)\n\n\tgroup2 := group.Group(\"manu\")\n\tgroup2.Use(func(c *Context) {}, func(c *Context) {})\n\n\tassert.Len(t, group2.Handlers, 4)\n\tassert.Equal(t, \"/hola/manu\", group2.BasePath())\n\tassert.Equal(t, router, group2.engine)\n}\n"
+        },
+        {
+          "id": "existing-test-3",
+          "kind": "contains",
+          "path": "ginS/gins_test.go",
+          "text": "func TestGET(t *testing.T) {\n\tGET(\"/test\", func(c *gin.Context) {\n\t\tc.String(http.StatusOK, \"test\")\n\t})\n\n\treq := httptest.NewRequest(http.MethodGet, \"/test\", nil)\n\tw := httptest.NewRecorder()\n\tengine().ServeHTTP(w, req)\n\n\tassert.Equal(t, http.StatusOK, w.Code)\n\tassert.Equal(t, \"test\", w.Body.String())\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "go.sum"
+          ]
+        },
+        {
+          "id": "independent-tests-1",
+          "kind": "oracle",
+          "file": "gin_query_routes_test.go",
+          "dir": ".",
+          "timeout": 600
+        },
+        {
+          "id": "independent-tests-2",
+          "kind": "oracle",
+          "file": "gin_query_gins_test.go",
+          "dir": "ginS",
+          "timeout": 600
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "routergroup.go",
+        "ginS/gins.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-gin-query-method"
+    },
+    "develop--neutral-gin-route-panic": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "routes_test.go",
+          "text": "func TestRouteQuery(t *testing.T) {\n\ttype search struct {\n\t\tTerm string `json:\"term\"`\n\t}\n\n\trouter := New()\n\trouter.QUERY(\"/search\", func(c *Context) {\n\t\tvar body search\n\t\trequire.NoError(t, c.ShouldBindJSON(&body))\n\t\tc.String(http.StatusOK, body.Term)\n\t})\n\n\treq := httptest.NewRequest(MethodQuery, \"/search\", strings.NewReader(`{\"term\":\"gin\"}`))\n\treq.Header.Set(\"Content-Type\", MIMEJSON)\n\tw := httptest.NewRecorder()\n\trouter.ServeHTTP(w, req)\n\n\tassert.Equal(t, http.StatusOK, w.Code)\n\tassert.Equal(t, \"gin\", w.Body.String())\n}\n"
+        },
+        {
+          "id": "existing-test-2",
+          "kind": "contains",
+          "path": "tree_test.go",
+          "text": "func TestCountParams(t *testing.T) {\n\tif countParams(\"/path/:param1/static/*catch-all\") != 2 {\n\t\tt.Fail()\n\t}\n\tif countParams(strings.Repeat(\"/:param\", 256)) != 256 {\n\t\tt.Fail()\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "go.sum"
+          ]
+        },
+        {
+          "id": "independent-tests-1",
+          "kind": "oracle",
+          "file": "gin_route_panic_test.go",
+          "dir": ".",
+          "timeout": 600
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "tree.go",
+        "gin.go"
+      ],
+      "initial_diff": [],
+      "ablation": true
+    },
+    "develop--gin-route-panic": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "routes_test.go",
+          "text": "func TestRouteQuery(t *testing.T) {\n\ttype search struct {\n\t\tTerm string `json:\"term\"`\n\t}\n\n\trouter := New()\n\trouter.QUERY(\"/search\", func(c *Context) {\n\t\tvar body search\n\t\trequire.NoError(t, c.ShouldBindJSON(&body))\n\t\tc.String(http.StatusOK, body.Term)\n\t})\n\n\treq := httptest.NewRequest(MethodQuery, \"/search\", strings.NewReader(`{\"term\":\"gin\"}`))\n\treq.Header.Set(\"Content-Type\", MIMEJSON)\n\tw := httptest.NewRecorder()\n\trouter.ServeHTTP(w, req)\n\n\tassert.Equal(t, http.StatusOK, w.Code)\n\tassert.Equal(t, \"gin\", w.Body.String())\n}\n"
+        },
+        {
+          "id": "existing-test-2",
+          "kind": "contains",
+          "path": "tree_test.go",
+          "text": "func TestCountParams(t *testing.T) {\n\tif countParams(\"/path/:param1/static/*catch-all\") != 2 {\n\t\tt.Fail()\n\t}\n\tif countParams(strings.Repeat(\"/:param\", 256)) != 256 {\n\t\tt.Fail()\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "go.sum"
+          ]
+        },
+        {
+          "id": "independent-tests-1",
+          "kind": "oracle",
+          "file": "gin_route_panic_test.go",
+          "dir": ".",
+          "timeout": 600
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "tree.go",
+        "gin.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-gin-route-panic"
     }
   }
 }

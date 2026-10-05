@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: develop--neutral-wire-compat
+context:
+  scaffold_script: fixture.sh

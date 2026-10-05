@@ -7,6 +7,7 @@ import subprocess
 import sys
 from flow_fixtures import prepare_decisions, prepare_review
 from hard_fixtures import prepare_hard
+from neutral_fixtures import prepare_neutral
 
 
 EMAIL = '''package email
@@ -82,6 +83,12 @@ def scaffold(name):
                 write(path, content)
             if files is hard[0]:
                 commit()
+        return
+    neutral = prepare_neutral(name)
+    if neutral:
+        for path, content in neutral.items():
+            write(path, content)
+        commit()
         return
     if prepare_review(name, write):
         commit()
