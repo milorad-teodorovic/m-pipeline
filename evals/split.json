@@ -54,6 +54,20 @@
     "develop--neutral-lookup": "train",
     "develop--lookup": "train",
     "develop--neutral-refund": "train",
-    "develop--refund": "train"
+    "develop--refund": "train",
+    "develop--neutral-dst-schedule": "train",
+    "develop--dst-schedule": "train",
+    "develop--neutral-multi-file-contract": "train",
+    "develop--multi-file-contract": "train",
+    "develop--neutral-pagination-cursor": "test",
+    "develop--pagination-cursor": "test",
+    "develop--neutral-retry-budget": "test",
+    "develop--retry-budget": "test",
+    "develop--neutral-symptom-vs-root": "train",
+    "develop--symptom-vs-root": "train",
+    "develop--neutral-tenant-scoping": "train",
+    "develop--tenant-scoping": "train",
+    "develop--neutral-wire-compat": "train",
+    "develop--wire-compat": "train"
   }
 }
