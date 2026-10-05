@@ -412,7 +412,8 @@ def regrade(source, output=None, rejudge_budget=None, concurrency=1):
         try:
             data = json.loads((output / trial["candidate"] / trial["case"] / "native/aggregate-result.json").read_text())
             case = next(c for c in data["cases"] if c["name"] == trial["case"])
-            raw = case["arms"][trial["arm"]][trial["index"]]
+            native_arm = "with" if original["metadata"].get("plain") else trial["arm"]
+            raw = case["arms"][native_arm][trial["index"]]
             if (artifact / "rejudge.json").exists():
                 raw = json.loads((artifact / "rejudge.json").read_text())
             if rejudge_budget is not None:
