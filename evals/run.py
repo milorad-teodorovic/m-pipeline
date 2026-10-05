@@ -414,11 +414,12 @@ def regrade(source, output=None, rejudge_budget=None, concurrency=1):
             case = next(c for c in data["cases"] if c["name"] == trial["case"])
             native_arm = "with" if original["metadata"].get("plain") else trial["arm"]
             raw = case["arms"][native_arm][trial["index"]]
-            if (artifact / "rejudge.json").exists():
-                raw = json.loads((artifact / "rejudge.json").read_text())
-            if rejudge_budget is not None:
+            judged = artifact / "rejudge.json"
+            if judged.exists():
+                raw = json.loads(judged.read_text())
+            elif rejudge_budget is not None:
                 raw, cost = rejudge_trial(raw, trial["case"], artifact / "trace.jsonl", original["metadata"]["judge_model"], budget, artifact / "judge-responses")
-                save(artifact / "rejudge.json", raw)
+                save(judged, raw)
             trial.update(grade_trial(raw, suite["cases"][trial["case"]], artifact / "trace.jsonl", artifact / "workspace", initial[trial["case"]], output / "oracles", trial["arm"]))
             trial["artifacts"] = previous.get("artifacts")
         except (OSError, ValueError, KeyError, IndexError, StopIteration, subprocess.SubprocessError) as error:
