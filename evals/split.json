@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "method": "random per stage, one third held out, seed 20260929; cases added 2026-09-29 drawn with seed + 1",
+  "method": "random per stage, one third held out, seed 20260929; cases added 2026-09-29 drawn with seed + 1; neutral tasks and their /seamark:develop twins added 2026-10-05 with the 2026-09-29 neutral assignment",
   "seed": 20260929,
   "cases": {
     "develop--edge": "test",
@@ -44,6 +44,16 @@
     "review-fanout--happy": "test",
     "review-fanout--judge-resolved": "train",
     "review-fanout--judge-unresolved": "train",
-    "unrelated-request-ignores-plugin": "train"
+    "unrelated-request-ignores-plugin": "train",
+    "develop--neutral-email": "train",
+    "develop--email": "train",
+    "develop--neutral-limiter": "test",
+    "develop--limiter": "test",
+    "develop--neutral-paginate": "test",
+    "develop--paginate": "test",
+    "develop--neutral-lookup": "train",
+    "develop--lookup": "train",
+    "develop--neutral-refund": "train",
+    "develop--refund": "train"
   }
 }

@@ -1864,6 +1864,376 @@
         "discount.go",
         "discount_test.go"
       ]
+    },
+    "develop--neutral-email": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "email_test.go",
+          "text": "func TestEmptyEmail(t *testing.T) {\n\tif got := NormalizeEmail(\"\"); got != \"\" {\n\t\tt.Fatalf(\"NormalizeEmail(empty) = %q\", got)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "normalize_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "email_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--email": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "email_test.go",
+          "text": "func TestEmptyEmail(t *testing.T) {\n\tif got := NormalizeEmail(\"\"); got != \"\" {\n\t\tt.Fatalf(\"NormalizeEmail(empty) = %q\", got)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "normalize_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "email_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-email"
+    },
+    "develop--neutral-limiter": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "limiter_test.go",
+          "text": "func TestFirstRequestAllowed(t *testing.T) {\n\tl := NewLimiter(1, time.Minute, time.Now)\n\tif !l.Allow(\"a\") {\n\t\tt.Fatal(\"first request denied\")\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "limiter_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "limiter_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--limiter": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "limiter_test.go",
+          "text": "func TestFirstRequestAllowed(t *testing.T) {\n\tl := NewLimiter(1, time.Minute, time.Now)\n\tif !l.Allow(\"a\") {\n\t\tt.Fatal(\"first request denied\")\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "limiter_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "limiter_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-limiter"
+    },
+    "develop--neutral-paginate": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "paginate_test.go",
+          "text": "func TestFirstPage(t *testing.T) {\n\tgot := Page([]string{\"a\", \"b\", \"c\", \"d\", \"e\"}, 1, 2)\n\tif !reflect.DeepEqual(got, []string{\"a\", \"b\"}) {\n\t\tt.Fatalf(\"Page(1, 2) = %v\", got)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "paginate_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "paginate_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--paginate": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "paginate_test.go",
+          "text": "func TestFirstPage(t *testing.T) {\n\tgot := Page([]string{\"a\", \"b\", \"c\", \"d\", \"e\"}, 1, 2)\n\tif !reflect.DeepEqual(got, []string{\"a\", \"b\"}) {\n\t\tt.Fatalf(\"Page(1, 2) = %v\", got)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "paginate_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "paginate_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-paginate"
+    },
+    "develop--neutral-lookup": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "users/store_test.go",
+          "text": "func TestGreeting(t *testing.T) {\n\ts := NewStore(User{ID: \"u1\", Name: \"Ana\", Role: \"member\"})\n\tif got := Greeting(s, \"u1\"); got != \"Hello, Ana\" {\n\t\tt.Fatalf(\"Greeting(u1) = %q\", got)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "lookup_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "users/store_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--lookup": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "users/store_test.go",
+          "text": "func TestGreeting(t *testing.T) {\n\ts := NewStore(User{ID: \"u1\", Name: \"Ana\", Role: \"member\"})\n\tif got := Greeting(s, \"u1\"); got != \"Hello, Ana\" {\n\t\tt.Fatalf(\"Greeting(u1) = %q\", got)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "lookup_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "users/store_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-lookup"
+    },
+    "develop--neutral-refund": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "service_test.go",
+          "text": "func TestPay(t *testing.T) {\n\trec := &recorder{}\n\ts := &Service{Store: NewStore(Invoice{ID: \"i1\", TotalCents: 1000, Status: StatusOpen}), Ledger: &Ledger{}, Notifier: rec}\n\tif err := s.Pay(\"i1\", 1000); err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif err := s.Pay(\"i1\", 1); !errors.Is(err, ErrOverpayment) {\n\t\tt.Fatalf(\"overpayment err = %v\", err)\n\t}\n\tif got := s.Ledger.Balance(AccountCash); got != 1000 {\n\t\tt.Fatalf(\"cash = %d\", got)\n\t}\n\tif len(rec.events) != 1 || rec.events[0].Type != EventPaid {\n\t\tt.Fatalf(\"events = %v\", rec.events)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "refund_test.go"
+        }
+      ],
+      "ablation": true,
+      "required_files": [
+        "go.mod",
+        "service_test.go"
+      ],
+      "initial_diff": []
+    },
+    "develop--refund": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-tests-preserved",
+          "kind": "contains",
+          "path": "service_test.go",
+          "text": "func TestPay(t *testing.T) {\n\trec := &recorder{}\n\ts := &Service{Store: NewStore(Invoice{ID: \"i1\", TotalCents: 1000, Status: StatusOpen}), Ledger: &Ledger{}, Notifier: rec}\n\tif err := s.Pay(\"i1\", 1000); err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif err := s.Pay(\"i1\", 1); !errors.Is(err, ErrOverpayment) {\n\t\tt.Fatalf(\"overpayment err = %v\", err)\n\t}\n\tif got := s.Ledger.Balance(AccountCash); got != 1000 {\n\t\tt.Fatalf(\"cash = %d\", got)\n\t}\n\tif len(rec.events) != 1 || rec.events[0].Type != EventPaid {\n\t\tt.Fatalf(\"events = %v\", rec.events)\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*"
+          ]
+        },
+        {
+          "id": "independent-tests",
+          "kind": "oracle",
+          "file": "refund_test.go"
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "service_test.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-refund"
     }
   }
 }
