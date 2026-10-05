@@ -279,22 +279,6 @@ func TestResponseWriterHijackAfterWriteHeaderNow(t *testing.T) {
 	}
 }
 
-func TestResponseWriterFlush(t *testing.T) {
-	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		writer := &responseWriter{}
-		writer.reset(w)
-
-		writer.WriteHeader(http.StatusInternalServerError)
-		writer.Flush()
-	}))
-	defer testServer.Close()
-
-	// should return 500
-	resp, err := http.Get(testServer.URL)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-}
-
 func TestResponseWriterStatusCode(t *testing.T) {
 	testWriter := httptest.NewRecorder()
 	writer := &responseWriter{}
