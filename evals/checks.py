@@ -219,7 +219,12 @@ def phase_order(trace, phases):
     return current == len(phases) - 1
 
 
-def oracle(root, source):
+def oracle(root, source, directory=".", timeout=90):
+    """Run the hidden oracle tests against a copy of root.
+
+    directory is the package directory, relative to root, that receives the
+    oracle file; timeout bounds the full go test run in seconds.
+    """
     if not shutil.which("go"):
         raise InvalidRun("Go is unavailable for independent verification")
     with tempfile.TemporaryDirectory(prefix="m-eval-oracle-") as scratch:
@@ -228,9 +233,12 @@ def oracle(root, source):
         for path in workspace.rglob("*"):
             if path.is_symlink():
                 raise InvalidRun("oracle workspace contains a symlink")
-        shutil.copyfile(source, workspace / "zz_eval_oracle_test.go")
+        target = safe_path(workspace, directory)
+        if not target.is_dir():
+            raise InvalidRun(f"oracle package directory is missing: {directory}")
+        shutil.copyfile(source, target / "zz_eval_oracle_test.go")
         try:
-            completed = subprocess.run(["go", "test", "-json", "./..."], cwd=workspace, capture_output=True, text=True, timeout=90)
+            completed = subprocess.run(["go", "test", "-json", "./..."], cwd=workspace, capture_output=True, text=True, timeout=timeout)
         except subprocess.TimeoutExpired as error:
             raise InvalidRun("independent tests timed out") from error
         expected = set(re.findall(r"(?m)^func (Test\w+)\(", Path(source).read_text()))
@@ -298,7 +306,7 @@ def evaluate(check, trace, workspace, initial, oracle_root):
     elif kind == "phases":
         passed = phase_order(trace, check["names"])
     elif kind == "oracle":
-        return oracle(workspace, Path(oracle_root) / check["file"])
+        return oracle(workspace, Path(oracle_root) / check["file"], check.get("dir", "."), check.get("timeout", 90))
     else:
         raise InvalidRun(f"unknown deterministic check: {kind}")
     return passed, "satisfied" if passed else json.dumps(check, sort_keys=True)

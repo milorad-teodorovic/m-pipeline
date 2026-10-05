@@ -2804,6 +2804,116 @@
       ],
       "initial_diff": [],
       "pair": "develop--neutral-wire-compat"
+    },
+    "develop--neutral-gin-header-binding": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-context",
+          "kind": "contains",
+          "path": "context_test.go",
+          "text": "func TestContextBindWithQuery(t *testing.T) {\n\tw := httptest.NewRecorder()\n\tc, _ := CreateTestContext(w)\n\n\tc.Request, _ = http.NewRequest(\"POST\", \"/?foo=bar&bar=foo\", bytes.NewBufferString(\"foo=unused\"))\n\n\tvar obj struct {\n\t\tFoo string `form:\"foo\"`\n\t\tBar string `form:\"bar\"`\n\t}\n\tassert.NoError(t, c.BindQuery(&obj))\n\tassert.Equal(t, \"foo\", obj.Bar)\n\tassert.Equal(t, \"bar\", obj.Foo)\n\tassert.Equal(t, 0, w.Body.Len())\n}\n"
+        },
+        {
+          "id": "existing-test-binding",
+          "kind": "contains",
+          "path": "binding/binding_test.go",
+          "text": "func TestUriBinding(t *testing.T) {\n\tb := Uri\n\tassert.Equal(t, \"uri\", b.Name())\n\n\ttype Tag struct {\n\t\tName string `uri:\"name\"`\n\t}\n\tvar tag Tag\n\tm := make(map[string][]string)\n\tm[\"name\"] = []string{\"thinkerou\"}\n\tassert.NoError(t, b.BindUri(m, &tag))\n\tassert.Equal(t, \"thinkerou\", tag.Name)\n\n\ttype NotSupportStruct struct {\n\t\tName map[string]interface{} `uri:\"name\"`\n\t}\n\tvar not NotSupportStruct\n\tassert.Error(t, b.BindUri(m, &not))\n\tassert.Equal(t, map[string]interface{}(nil), not.Name)\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "go.sum"
+          ]
+        },
+        {
+          "id": "independent-tests-binding",
+          "kind": "oracle",
+          "file": "gin_header_binding_test.go",
+          "dir": "binding",
+          "timeout": 600
+        },
+        {
+          "id": "independent-tests-context",
+          "kind": "oracle",
+          "file": "gin_header_context_test.go",
+          "dir": ".",
+          "timeout": 600
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "context.go",
+        "binding/binding.go"
+      ],
+      "initial_diff": [],
+      "ablation": true
+    },
+    "develop--gin-header-binding": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-context",
+          "kind": "contains",
+          "path": "context_test.go",
+          "text": "func TestContextBindWithQuery(t *testing.T) {\n\tw := httptest.NewRecorder()\n\tc, _ := CreateTestContext(w)\n\n\tc.Request, _ = http.NewRequest(\"POST\", \"/?foo=bar&bar=foo\", bytes.NewBufferString(\"foo=unused\"))\n\n\tvar obj struct {\n\t\tFoo string `form:\"foo\"`\n\t\tBar string `form:\"bar\"`\n\t}\n\tassert.NoError(t, c.BindQuery(&obj))\n\tassert.Equal(t, \"foo\", obj.Bar)\n\tassert.Equal(t, \"bar\", obj.Foo)\n\tassert.Equal(t, 0, w.Body.Len())\n}\n"
+        },
+        {
+          "id": "existing-test-binding",
+          "kind": "contains",
+          "path": "binding/binding_test.go",
+          "text": "func TestUriBinding(t *testing.T) {\n\tb := Uri\n\tassert.Equal(t, \"uri\", b.Name())\n\n\ttype Tag struct {\n\t\tName string `uri:\"name\"`\n\t}\n\tvar tag Tag\n\tm := make(map[string][]string)\n\tm[\"name\"] = []string{\"thinkerou\"}\n\tassert.NoError(t, b.BindUri(m, &tag))\n\tassert.Equal(t, \"thinkerou\", tag.Name)\n\n\ttype NotSupportStruct struct {\n\t\tName map[string]interface{} `uri:\"name\"`\n\t}\n\tvar not NotSupportStruct\n\tassert.Error(t, b.BindUri(m, &not))\n\tassert.Equal(t, map[string]interface{}(nil), not.Name)\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "go.sum"
+          ]
+        },
+        {
+          "id": "independent-tests-binding",
+          "kind": "oracle",
+          "file": "gin_header_binding_test.go",
+          "dir": "binding",
+          "timeout": 600
+        },
+        {
+          "id": "independent-tests-context",
+          "kind": "oracle",
+          "file": "gin_header_context_test.go",
+          "dir": ".",
+          "timeout": 600
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "context.go",
+        "binding/binding.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-gin-header-binding"
     }
   }
 }

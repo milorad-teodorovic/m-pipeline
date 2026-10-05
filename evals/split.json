@@ -68,6 +68,8 @@
     "develop--neutral-tenant-scoping": "train",
     "develop--tenant-scoping": "train",
     "develop--neutral-wire-compat": "train",
-    "develop--wire-compat": "train"
+    "develop--wire-compat": "train",
+    "develop--neutral-gin-header-binding": "test",
+    "develop--gin-header-binding": "test"
   }
 }
