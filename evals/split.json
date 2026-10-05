@@ -70,6 +70,10 @@
     "develop--neutral-wire-compat": "train",
     "develop--wire-compat": "train",
     "develop--neutral-gin-header-binding": "test",
-    "develop--gin-header-binding": "test"
+    "develop--gin-header-binding": "test",
+    "develop--neutral-gin-query-method": "test",
+    "develop--gin-query-method": "test",
+    "develop--neutral-gin-route-panic": "test",
+    "develop--gin-route-panic": "test"
   }
 }

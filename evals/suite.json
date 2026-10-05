@@ -2914,6 +2914,224 @@
       ],
       "initial_diff": [],
       "pair": "develop--neutral-gin-header-binding"
+    },
+    "develop--neutral-gin-query-method": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "routes_test.go",
+          "text": "func TestRouterMethod(t *testing.T) {\n\trouter := New()\n\trouter.PUT(\"/hey2\", func(c *Context) {\n\t\tc.String(http.StatusOK, \"sup2\")\n\t})\n\n\trouter.PUT(\"/hey\", func(c *Context) {\n\t\tc.String(http.StatusOK, \"called\")\n\t})\n\n\trouter.PUT(\"/hey3\", func(c *Context) {\n\t\tc.String(http.StatusOK, \"sup3\")\n\t})\n\n\tw := PerformRequest(router, http.MethodPut, \"/hey\")\n\n\tassert.Equal(t, http.StatusOK, w.Code)\n\tassert.Equal(t, \"called\", w.Body.String())\n}\n"
+        },
+        {
+          "id": "existing-test-2",
+          "kind": "contains",
+          "path": "routergroup_test.go",
+          "text": "func TestRouterGroupBasic(t *testing.T) {\n\trouter := New()\n\tgroup := router.Group(\"/hola\", func(c *Context) {})\n\tgroup.Use(func(c *Context) {})\n\n\tassert.Len(t, group.Handlers, 2)\n\tassert.Equal(t, \"/hola\", group.BasePath())\n\tassert.Equal(t, router, group.engine)\n\n\tgroup2 := group.Group(\"manu\")\n\tgroup2.Use(func(c *Context) {}, func(c *Context) {})\n\n\tassert.Len(t, group2.Handlers, 4)\n\tassert.Equal(t, \"/hola/manu\", group2.BasePath())\n\tassert.Equal(t, router, group2.engine)\n}\n"
+        },
+        {
+          "id": "existing-test-3",
+          "kind": "contains",
+          "path": "ginS/gins_test.go",
+          "text": "func TestGET(t *testing.T) {\n\tGET(\"/test\", func(c *gin.Context) {\n\t\tc.String(http.StatusOK, \"test\")\n\t})\n\n\treq := httptest.NewRequest(http.MethodGet, \"/test\", nil)\n\tw := httptest.NewRecorder()\n\tengine().ServeHTTP(w, req)\n\n\tassert.Equal(t, http.StatusOK, w.Code)\n\tassert.Equal(t, \"test\", w.Body.String())\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "go.sum"
+          ]
+        },
+        {
+          "id": "independent-tests-1",
+          "kind": "oracle",
+          "file": "gin_query_routes_test.go",
+          "dir": ".",
+          "timeout": 600
+        },
+        {
+          "id": "independent-tests-2",
+          "kind": "oracle",
+          "file": "gin_query_gins_test.go",
+          "dir": "ginS",
+          "timeout": 600
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "routergroup.go",
+        "ginS/gins.go"
+      ],
+      "initial_diff": [],
+      "ablation": true
+    },
+    "develop--gin-query-method": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "routes_test.go",
+          "text": "func TestRouterMethod(t *testing.T) {\n\trouter := New()\n\trouter.PUT(\"/hey2\", func(c *Context) {\n\t\tc.String(http.StatusOK, \"sup2\")\n\t})\n\n\trouter.PUT(\"/hey\", func(c *Context) {\n\t\tc.String(http.StatusOK, \"called\")\n\t})\n\n\trouter.PUT(\"/hey3\", func(c *Context) {\n\t\tc.String(http.StatusOK, \"sup3\")\n\t})\n\n\tw := PerformRequest(router, http.MethodPut, \"/hey\")\n\n\tassert.Equal(t, http.StatusOK, w.Code)\n\tassert.Equal(t, \"called\", w.Body.String())\n}\n"
+        },
+        {
+          "id": "existing-test-2",
+          "kind": "contains",
+          "path": "routergroup_test.go",
+          "text": "func TestRouterGroupBasic(t *testing.T) {\n\trouter := New()\n\tgroup := router.Group(\"/hola\", func(c *Context) {})\n\tgroup.Use(func(c *Context) {})\n\n\tassert.Len(t, group.Handlers, 2)\n\tassert.Equal(t, \"/hola\", group.BasePath())\n\tassert.Equal(t, router, group.engine)\n\n\tgroup2 := group.Group(\"manu\")\n\tgroup2.Use(func(c *Context) {}, func(c *Context) {})\n\n\tassert.Len(t, group2.Handlers, 4)\n\tassert.Equal(t, \"/hola/manu\", group2.BasePath())\n\tassert.Equal(t, router, group2.engine)\n}\n"
+        },
+        {
+          "id": "existing-test-3",
+          "kind": "contains",
+          "path": "ginS/gins_test.go",
+          "text": "func TestGET(t *testing.T) {\n\tGET(\"/test\", func(c *gin.Context) {\n\t\tc.String(http.StatusOK, \"test\")\n\t})\n\n\treq := httptest.NewRequest(http.MethodGet, \"/test\", nil)\n\tw := httptest.NewRecorder()\n\tengine().ServeHTTP(w, req)\n\n\tassert.Equal(t, http.StatusOK, w.Code)\n\tassert.Equal(t, \"test\", w.Body.String())\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "go.sum"
+          ]
+        },
+        {
+          "id": "independent-tests-1",
+          "kind": "oracle",
+          "file": "gin_query_routes_test.go",
+          "dir": ".",
+          "timeout": 600
+        },
+        {
+          "id": "independent-tests-2",
+          "kind": "oracle",
+          "file": "gin_query_gins_test.go",
+          "dir": "ginS",
+          "timeout": 600
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "routergroup.go",
+        "ginS/gins.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-gin-query-method"
+    },
+    "develop--neutral-gin-route-panic": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "routes_test.go",
+          "text": "func TestRouteQuery(t *testing.T) {\n\ttype search struct {\n\t\tTerm string `json:\"term\"`\n\t}\n\n\trouter := New()\n\trouter.QUERY(\"/search\", func(c *Context) {\n\t\tvar body search\n\t\trequire.NoError(t, c.ShouldBindJSON(&body))\n\t\tc.String(http.StatusOK, body.Term)\n\t})\n\n\treq := httptest.NewRequest(MethodQuery, \"/search\", strings.NewReader(`{\"term\":\"gin\"}`))\n\treq.Header.Set(\"Content-Type\", MIMEJSON)\n\tw := httptest.NewRecorder()\n\trouter.ServeHTTP(w, req)\n\n\tassert.Equal(t, http.StatusOK, w.Code)\n\tassert.Equal(t, \"gin\", w.Body.String())\n}\n"
+        },
+        {
+          "id": "existing-test-2",
+          "kind": "contains",
+          "path": "tree_test.go",
+          "text": "func TestCountParams(t *testing.T) {\n\tif countParams(\"/path/:param1/static/*catch-all\") != 2 {\n\t\tt.Fail()\n\t}\n\tif countParams(strings.Repeat(\"/:param\", 256)) != 256 {\n\t\tt.Fail()\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "go.sum"
+          ]
+        },
+        {
+          "id": "independent-tests-1",
+          "kind": "oracle",
+          "file": "gin_route_panic_test.go",
+          "dir": ".",
+          "timeout": 600
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "tree.go",
+        "gin.go"
+      ],
+      "initial_diff": [],
+      "ablation": true
+    },
+    "develop--gin-route-panic": {
+      "category": "execution",
+      "checks": [
+        {
+          "id": "existing-test-1",
+          "kind": "contains",
+          "path": "routes_test.go",
+          "text": "func TestRouteQuery(t *testing.T) {\n\ttype search struct {\n\t\tTerm string `json:\"term\"`\n\t}\n\n\trouter := New()\n\trouter.QUERY(\"/search\", func(c *Context) {\n\t\tvar body search\n\t\trequire.NoError(t, c.ShouldBindJSON(&body))\n\t\tc.String(http.StatusOK, body.Term)\n\t})\n\n\treq := httptest.NewRequest(MethodQuery, \"/search\", strings.NewReader(`{\"term\":\"gin\"}`))\n\treq.Header.Set(\"Content-Type\", MIMEJSON)\n\tw := httptest.NewRecorder()\n\trouter.ServeHTTP(w, req)\n\n\tassert.Equal(t, http.StatusOK, w.Code)\n\tassert.Equal(t, \"gin\", w.Body.String())\n}\n"
+        },
+        {
+          "id": "existing-test-2",
+          "kind": "contains",
+          "path": "tree_test.go",
+          "text": "func TestCountParams(t *testing.T) {\n\tif countParams(\"/path/:param1/static/*catch-all\") != 2 {\n\t\tt.Fail()\n\t}\n\tif countParams(strings.Repeat(\"/:param\", 256)) != 256 {\n\t\tt.Fail()\n\t}\n}\n"
+        },
+        {
+          "id": "module-unchanged",
+          "kind": "unchanged",
+          "paths": [
+            "go.mod"
+          ]
+        },
+        {
+          "id": "scope",
+          "kind": "changes",
+          "paths": [
+            "*.go",
+            ".seamark/*",
+            "*.md",
+            "go.sum"
+          ]
+        },
+        {
+          "id": "independent-tests-1",
+          "kind": "oracle",
+          "file": "gin_route_panic_test.go",
+          "dir": ".",
+          "timeout": 600
+        }
+      ],
+      "required_files": [
+        "go.mod",
+        "tree.go",
+        "gin.go"
+      ],
+      "initial_diff": [],
+      "pair": "develop--neutral-gin-route-panic"
     }
   }
 }
